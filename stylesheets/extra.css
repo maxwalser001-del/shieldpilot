@@ -1,0 +1,29 @@
+:root {
+  --md-primary-fg-color: #39D2C0;
+  --md-primary-fg-color--light: #39D2C0;
+  --md-primary-fg-color--dark: #39D2C0;
+  --md-accent-fg-color: #39D2C0;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #0D1117;
+  --md-default-bg-color--light: #161B22;
+  --md-default-bg-color--lighter: #21262D;
+  --md-default-bg-color--lightest: #30363D;
+  --md-code-bg-color: #161B22;
+  --md-primary-fg-color: #39D2C0;
+}
+
+.md-header {
+  background-color: #0D1117;
+  border-bottom: 1px solid #30363D;
+}
+
+.md-nav__title {
+  color: #39D2C0;
+}
+
+/* Score badge styling */
+code {
+  border-radius: 4px;
+}
