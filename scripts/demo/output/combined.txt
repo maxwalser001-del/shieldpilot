@@ -1,0 +1,110 @@
+
+╭─────────────────────────────────────────────────╮
+│  ShieldPilot  MCP Configuration Security Audit  │
+╰─────────────────────────────────────────────────╯
+
+  Target:  /Users/maxwalser/Desktop/Cyber Security 
+Claude/.claude/worktrees/quizzical-poitras/scripts/demo/mcp-config.json
+  Profile: strict (block >= 60)
+
+
+
+─────────────────────────────────────────── Scan Results ───────────────────────────────────────────
+
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Server            ┃ Finding                                               ┃  Severity   ┃  Score ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━┩
+│ filesystem        │ Hardcoded AWS_SECRET_ACCESS_KEY in env                │  CRITICAL   │     97 │
+│ filesystem        │ Hardcoded DB_PASSWORD in env                          │  CRITICAL   │     95 │
+│ filesystem        │ Hardcoded API key (sk-prod-...)                       │  CRITICAL   │     93 │
+│ filesystem        │ Root filesystem access ( / ) — no path restriction    │    HIGH     │     82 │
+│ web-fetcher       │ ALLOWED_HOSTS=* enables SSRF to any host              │    HIGH     │     81 │
+│ web-fetcher       │ MAX_REDIRECTS=100 enables redirect chain abuse        │   MEDIUM    │     62 │
+│ code-executor     │ SANDBOX=false — unrestricted code execution           │  CRITICAL   │     99 │
+│ code-executor     │ AUTH_REQUIRED=false — unauthenticated access          │  CRITICAL   │     96 │
+│ code-executor     │ ALLOW_SYSTEM_CALLS=true — OS-level access             │  CRITICAL   │     94 │
+│ database          │ Cleartext credentials in DATABASE_URL                 │  CRITICAL   │     92 │
+│ database          │ Connects to internal network (company.internal)       │    HIGH     │     78 │
+│ slack             │ Hardcoded SLACK_BOT_TOKEN (xoxb-...)                  │  CRITICAL   │     91 │
+│ slack             │ POST_AS_USER=true — can impersonate users             │    HIGH     │     76 │
+└───────────────────┴───────────────────────────────────────────────────────┴─────────────┴────────┘
+
+╭───────────────────────────────────────── Audit Summary ──────────────────────────────────────────╮
+│  Servers scanned:          5                                                                     │
+│  Total findings:           13                                                                    │
+│  Critical:                 6                                                                     │
+│  High:                     4                                                                     │
+│  Medium:                   2                                                                     │
+│  Servers blocked:          3 / 5                                                                 │
+│  Hardcoded secrets:        4 exposed                                                             │
+│  Overall risk:             CRITICAL                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+  ✗  3 MCP servers BLOCKED — dangerous configuration detected
+  ⚠  2 MCP servers WARNED — review before use
+  ✓  0 MCP servers passed without findings
+
+  Run sentinel dashboard to view full incident report → http://localhost:8420
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+╭────────────────────────────────────────────╮
+│  ShieldPilot  Supply Chain Security Audit  │
+╰────────────────────────────────────────────╯
+
+  Target:  /Users/maxwalser/Desktop/Cyber Security 
+Claude/.claude/worktrees/quizzical-poitras/scripts/demo/requirements-demo.txt
+  Checks:  typosquatting · unpinned versions · abandoned packages · dependency confusion
+
+
+
+───────────────────────────────────── Typosquatting Detections ─────────────────────────────────────
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ Package in requirements.txt         ┃ Looks like               ┃    Confidence    ┃    Action    ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ colourama                           │ colorama                 │       99%        │    BLOCK     │
+│ djano                               │ django                   │       97%        │    BLOCK     │
+│ reqeusts                            │ requests                 │       98%        │    BLOCK     │
+│ urllib4                             │ urllib3                  │       94%        │    BLOCK     │
+│ nump0                               │ numpy                    │       96%        │    BLOCK     │
+│ panadas                             │ pandas                   │       95%        │    BLOCK     │
+│ boto                                │ boto3                    │       88%        │     WARN     │
+│ crypt0graphy                        │ cryptography             │       93%        │    BLOCK     │
+└─────────────────────────────────────┴──────────────────────────┴──────────────────┴──────────────┘
+
+──────────────────────────────────── Unpinned & Risky Packages ─────────────────────────────────────
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Package                     ┃ Issue                                                 ┃    Risk    ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ pycrypto                    │ Abandoned 2013 · 7 known CVEs (CVE-2018-6594...)      │  CRITICAL  │
+│ django (unpinned)           │ No version pin — supply chain substitution risk       │    HIGH    │
+│ flask (unpinned)            │ No version pin — supply chain substitution risk       │    HIGH    │
+│ fastapi (unpinned)          │ No version pin — supply chain substitution risk       │    HIGH    │
+│ requests (unpinned)         │ No version pin — supply chain substitution risk       │    HIGH    │
+│ internal-auth-utils         │ Not on PyPI — dependency confusion attack surface     │  CRITICAL  │
+│ company-shared-models       │ Not on PyPI — dependency confusion attack surface     │  CRITICAL  │
+│ acme-corp-utils             │ Not on PyPI — dependency confusion attack surface     │  CRITICAL  │
+└─────────────────────────────┴───────────────────────────────────────────────────────┴────────────┘
+
+╭───────────────────────────────────────── Audit Summary ──────────────────────────────────────────╮
+│  Packages scanned:               27                                                              │
+│  Typosquatting detections:       8                                                               │
+│  Dependency confusion risks:     3                                                               │
+│  Unpinned versions:              5                                                               │
+│  Abandoned packages:             1 (pycrypto)                                                    │
+│  Packages blocked:               7                                                               │
+│  Packages warned:                1                                                               │
+│  Safe to install:                12                                                              │
+│  Overall risk:                   CRITICAL — do not install                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+  ✗  7 packages BLOCKED — probable malicious packages detected
+  ⚠  1 package WARNED — verify before installing
+  Recommendation: Run pip-audit and pin all versions with pip-compile
+
+  Run sentinel dashboard to view full report → http://localhost:8420
+

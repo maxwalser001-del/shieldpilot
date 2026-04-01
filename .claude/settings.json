@@ -1,0 +1,24 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "SENTINEL_ML_MODE": "enforce",
+    "SENTINEL_ML_REVIEW_THRESHOLD": "0.60",
+    "SENTINEL_ML_BLOCK_THRESHOLD": "0.90",
+    "SENTINEL_ACTIVE_LEARNING_PATH": "/tmp/shieldpilot_active_learning.jsonl",
+    "SENTINEL_ML_TELEMETRY": "1"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "(Edit|Write)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"from sentinelai.api.app import create_app; print('Import check: OK')\" 2>&1 | tail -3",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

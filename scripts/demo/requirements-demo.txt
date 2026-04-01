@@ -1,0 +1,47 @@
+# Demo project requirements
+# Generated 2026-01-15
+
+# Core framework
+django
+flask
+fastapi
+
+# Utilities
+requests
+urllib3
+boto3
+paramiko
+cryptography
+
+# Data science
+numpy
+pandas
+scikit-learn
+
+# Suspicious packages (typosquatting / malicious lookalikes)
+colourama
+djano
+reqeusts
+urllib4
+nump0
+panadas
+boto
+crypt0graphy
+
+# Unpinned + abandoned packages
+pycrypto
+pyOpenSSL
+Pillow
+pygments
+lxml
+
+# Dev tools
+pytest
+black
+isort
+mypy
+
+# Dependency confusion risk
+internal-auth-utils
+company-shared-models
+acme-corp-utils

@@ -1,0 +1,29 @@
+name: "Strict Production"
+version: "1"
+description: "No network, no rm, no sudo — for production environments"
+rules:
+  - action: deny
+    tool: bash
+    pattern: "rm\\s|del\\s|unlink\\s"
+    severity: critical
+    reason: "File deletion not allowed in production"
+  - action: deny
+    tool: bash
+    pattern: "curl|wget|nc\\s|netcat|ncat|ssh\\s|scp\\s|rsync"
+    severity: critical
+    reason: "Network operations not allowed in production"
+  - action: deny
+    tool: bash
+    pattern: "sudo|su\\s|doas"
+    severity: critical
+    reason: "Privilege escalation not allowed in production"
+  - action: deny
+    tool: bash
+    pattern: "pip\\s+install|npm\\s+install|apt\\s+install|brew\\s+install"
+    severity: high
+    reason: "Package installation not allowed in production"
+  - action: deny
+    tool: bash
+    pattern: ">\\s*/etc/|>>\\s*/etc/"
+    severity: critical
+    reason: "Writing to /etc not allowed in production"

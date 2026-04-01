@@ -1,0 +1,47 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/"],
+      "env": {
+        "NODE_ENV": "production",
+        "API_KEY": "sk-prod-fE3mQx9vRt2nK7wL4pHd8cJaYb1sUoNg",
+        "DB_PASSWORD": "SuperSecret123!",
+        "AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      }
+    },
+    "web-fetcher": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "env": {
+        "ALLOWED_HOSTS": "*",
+        "FOLLOW_REDIRECTS": "true",
+        "MAX_REDIRECTS": "100"
+      }
+    },
+    "code-executor": {
+      "command": "python3",
+      "args": ["-m", "mcp_code_executor"],
+      "env": {
+        "SANDBOX": "false",
+        "ALLOW_SYSTEM_CALLS": "true",
+        "AUTH_REQUIRED": "false"
+      }
+    },
+    "database": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-postgres"],
+      "env": {
+        "DATABASE_URL": "postgresql://admin:password123@internal-db.company.internal:5432/production"
+      }
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "xoxb-2847362847-2837462837462-ABCDEFabcdef1234567890",
+        "POST_AS_USER": "true"
+      }
+    }
+  }
+}

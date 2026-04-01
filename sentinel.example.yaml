@@ -1,0 +1,224 @@
+# ============================================================================
+# ShieldPilot Configuration Reference
+# ============================================================================
+#
+# Copy this file to `sentinel.yaml` in your project root.
+# ShieldPilot searches for sentinel.yaml in the CWD and parent directories.
+#
+# SECRETS: Never commit real secrets to sentinel.yaml.
+# Use environment variables or a .env file instead. ShieldPilot auto-loads
+# .env via python-dotenv (pip install python-dotenv).
+#
+# Override search order:
+#   1. Explicit --config flag
+#   2. SENTINEL_CONFIG environment variable
+#   3. sentinel.yaml in CWD or parent directories
+#   4. Built-in defaults
+# ============================================================================
+
+sentinel:
+
+  # --------------------------------------------------------------------------
+  # Mode: how ShieldPilot handles risky commands
+  # --------------------------------------------------------------------------
+  # enforce  - block commands above the block threshold (default)
+  # audit    - log everything but never block (dry-run)
+  # disabled - completely skip analysis (passthrough)
+  mode: enforce
+
+  # Base URL for redirects (OAuth callbacks, Stripe checkout, password reset)
+  # Change this when deploying behind a reverse proxy or custom domain.
+  # app_base_url: https://shield.example.com
+
+  # --------------------------------------------------------------------------
+  # Risk Thresholds (0-100 scale)
+  # --------------------------------------------------------------------------
+  # block: commands scoring >= this are denied (default: 80)
+  # warn:  commands scoring >= this are flagged for review (default: 40)
+  # allow: commands scoring >= this are allowed silently (default: 0)
+  risk_thresholds:
+    block: 80
+    warn: 40
+    allow: 0
+
+  # --------------------------------------------------------------------------
+  # LLM Evaluator (optional second-opinion for medium-risk commands)
+  # --------------------------------------------------------------------------
+  # When enabled, commands in the score_range are sent to an LLM for
+  # a second risk assessment. Requires ANTHROPIC_API_KEY env var.
+  llm:
+    enabled: false
+    model: claude-sonnet-4-20250514
+    max_tokens: 512
+    score_range: [40, 79]   # Only evaluate commands in this risk range
+
+  # --------------------------------------------------------------------------
+  # Whitelist: always-allow commands and domains
+  # --------------------------------------------------------------------------
+  # Whitelisted commands get risk score 0, skipping all analyzers.
+  whitelist:
+    commands:
+      - ls
+      - cat
+      - echo
+      - pwd
+      - whoami
+      - date
+      - head
+      - tail
+      - wc
+      - grep
+      - find
+      - which
+      - man
+      - help
+    domains: []   # e.g. ["github.com", "pypi.org"]
+
+  # --------------------------------------------------------------------------
+  # Blacklist: always-block commands and domains
+  # --------------------------------------------------------------------------
+  # Blacklisted commands get risk score 100, triggering immediate block.
+  blacklist:
+    commands:
+      - "rm -rf /"
+      - "rm -rf /*"
+      - mkfs
+      - "dd if=/dev/zero"
+      - ":(){:|:&};:"       # fork bomb
+    domains:
+      - pastebin.com
+      - transfer.sh
+      - ngrok.io
+      - requestbin.com
+
+  # --------------------------------------------------------------------------
+  # Protected Paths: filesystem locations that trigger high risk scores
+  # --------------------------------------------------------------------------
+  # Commands accessing these paths are flagged by the FileSystemAnalyzer.
+  # Supports ~ (home dir expansion) and glob patterns.
+  protected_paths:
+    - /etc
+    - /var
+    - /boot
+    - /sys
+    - ~/.ssh
+    - ~/.aws
+    - ~/.gnupg
+    - ~/.config
+
+  # --------------------------------------------------------------------------
+  # Secret Patterns: regex patterns for credential detection
+  # --------------------------------------------------------------------------
+  # The CredentialAccessAnalyzer scans command text for these patterns.
+  # Matches trigger a high risk score.
+  secrets_patterns:
+    - '(?i)(api[_-]?key|secret|password|token|credential)\s*[=:]\s*[''"]?[A-Za-z0-9+/=]{16,}'
+    - 'AKIA[0-9A-Z]{16}'            # AWS access key
+    - 'sk-[a-zA-Z0-9]{20,}'         # OpenAI / Stripe secret key
+    - 'ghp_[a-zA-Z0-9]{36}'         # GitHub personal access token
+    - '(?i)bearer\s+[a-zA-Z0-9._\-]{20,}'  # Bearer tokens
+
+  # --------------------------------------------------------------------------
+  # Sandbox: execution constraints for evaluated commands
+  # --------------------------------------------------------------------------
+  sandbox:
+    enabled: true
+    timeout: 30                # Max seconds per command
+    max_memory_mb: 512         # Memory limit in MB
+    max_file_size_mb: 100      # Max file size in MB
+    restricted_env_vars:       # Env vars stripped from sandbox
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_ACCESS_KEY_ID
+      - ANTHROPIC_API_KEY
+      - OPENAI_API_KEY
+      - GITHUB_TOKEN
+      - STRIPE_SECRET_KEY
+
+  # --------------------------------------------------------------------------
+  # Plugin System
+  # --------------------------------------------------------------------------
+  plugins:
+    enabled: true
+    directory: plugins         # Relative to project root
+
+  # --------------------------------------------------------------------------
+  # Logging & Audit Trail
+  # --------------------------------------------------------------------------
+  logging:
+    database: sentinel.db      # SQLite database file (relative to CWD)
+    chain_hashing: true        # SHA-256 hash chain for tamper detection
+    retention_days: 90         # Auto-purge logs older than this
+
+  # --------------------------------------------------------------------------
+  # Authentication
+  # --------------------------------------------------------------------------
+  # IMPORTANT: Set secrets via environment variables, not in this file!
+  #
+  # Required env vars for production:
+  #   SHIELDPILOT_SECRET_KEY    - JWT signing key (auto-generated if empty)
+  #
+  # Optional env vars:
+  #   GOOGLE_CLIENT_ID          - Google OAuth client ID
+  #   GOOGLE_CLIENT_SECRET      - Google OAuth client secret
+  #   SMTP_USER                 - SMTP username for emails
+  #   SMTP_PASSWORD             - SMTP password
+  #   SMTP_FROM_EMAIL           - Sender email address
+  #   SHIELDPILOT_SUPER_ADMIN_EMAIL    - Super-admin email
+  #   SHIELDPILOT_SUPER_ADMIN_PASSWORD - Super-admin password
+  #   SHIELDPILOT_SUPER_ADMIN_USERNAME - Super-admin display name
+  auth:
+    secret_key: ''              # Set via SHIELDPILOT_SECRET_KEY env var
+    algorithm: HS256
+    access_token_expire_minutes: 1440  # 24 hours
+    default_admin_user: admin
+    default_admin_password: ''  # Set via SHIELDPILOT_ADMIN_PASSWORD env var
+    local_first: true           # Skip auth for localhost (127.0.0.1/::1)
+
+    # Google OAuth
+    google_client_id: ''        # Set via GOOGLE_CLIENT_ID env var
+    google_client_secret: ''    # Set via GOOGLE_CLIENT_SECRET env var
+    google_redirect_uri: http://localhost:8420/api/auth/google/callback
+
+    # Super-admin (unlimited tier, bypasses all limits)
+    super_admin_email: ''       # Set via SHIELDPILOT_SUPER_ADMIN_EMAIL env var
+    super_admin_password: ''    # Set via SHIELDPILOT_SUPER_ADMIN_PASSWORD env var
+    super_admin_username: ''    # Set via SHIELDPILOT_SUPER_ADMIN_USERNAME env var
+
+    # SMTP (for password reset & email verification)
+    smtp_user: ''               # Set via SMTP_USER env var
+    smtp_password: ''           # Set via SMTP_PASSWORD env var
+    smtp_from_email: ''         # Set via SMTP_FROM_EMAIL env var
+    password_reset_url: http://localhost:8420/login?reset_token=
+
+  # --------------------------------------------------------------------------
+  # Billing & SaaS
+  # --------------------------------------------------------------------------
+  # Tiers: free (50 cmd/day), pro (1000/day), enterprise (unlimited),
+  #        unlimited (super-admin only)
+  #
+  # Stripe env vars:
+  #   STRIPE_PUBLISHABLE_KEY    - Client-side key
+  #   STRIPE_SECRET_KEY         - Server-side key
+  #   STRIPE_WEBHOOK_SECRET     - Webhook signing secret
+  billing:
+    enabled: false              # Set to true to enforce usage limits
+    tier: free                  # Default tier for new users
+    stripe_publishable_key: ''  # Set via STRIPE_PUBLISHABLE_KEY env var
+    stripe_secret_key: ''       # Set via STRIPE_SECRET_KEY env var
+    stripe_webhook_secret: ''   # Set via STRIPE_WEBHOOK_SECRET env var
+    upgrade_url: '#/pricing'    # URL for the upgrade button
+
+  # --------------------------------------------------------------------------
+  # Legal / Impressum (required for German hosting, optional otherwise)
+  # --------------------------------------------------------------------------
+  legal:
+    company_name: ''
+    address_line1: ''
+    address_line2: ''
+    country: Germany
+    managing_director: ''
+    registration_court: ''
+    registration_number: ''
+    vat_id: ''
+    contact_email: ''           # Set via SHIELDPILOT_CONTACT_EMAIL env var
+    contact_phone: ''

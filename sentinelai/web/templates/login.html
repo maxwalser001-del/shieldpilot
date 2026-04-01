@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShieldPilot — Login</title>
+    <link rel="stylesheet" href="/static/css/sentinel.css">
+    <style>
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at center, var(--bg-secondary) 0%, var(--bg-primary) 70%);
+        }
+        .login-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: var(--shadow-md);
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-logo svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+        }
+        .login-logo h1 {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            color: var(--text-primary);
+            margin: 0;
+            letter-spacing: 2px;
+        }
+        .login-form .field {
+            margin-bottom: 16px;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .login-form input:focus {
+            border-color: var(--border-focus);
+        }
+        .login-form input::placeholder {
+            color: var(--text-muted);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--color-info);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .login-btn:hover { opacity: 0.9; }
+        .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .login-error {
+            color: var(--color-block);
+            font-size: 12px;
+            margin-top: 12px;
+            text-align: center;
+            display: none;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <svg viewBox="0 0 24 24" fill="none" color="#39D2C0">
+                    <path d="M12 2L3 7v6c0 5.25 3.75 10.13 9 11.25C17.25 23.13 21 18.25 21 13V7l-9-5z" stroke="#39D2C0" stroke-width="1.5" fill="rgba(57,210,192,0.08)"/>
+                    <path d="M12 7l-3.5 7h2.2v3.5h2.6V14h2.2L12 7z" fill="#39D2C0" opacity="0.9"/>
+                </svg>
+                <h1>SHIELDPILOT</h1>
+            </div>
+            <form class="login-form" id="loginForm">
+                <div class="field">
+                    <input type="text" id="username" placeholder="Username" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+                <div class="login-error" id="loginError"></div>
+            </form>
+            <div class="login-footer">ShieldPilot v0.1.0 &middot; Local instance</div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const errorEl = document.getElementById('loginError');
+            btn.disabled = true;
+            errorEl.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value,
+                    }),
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.detail || 'Login failed');
+                }
+
+                const data = await res.json();
+                localStorage.setItem('sentinel_token', data.access_token);
+                localStorage.setItem('sentinel_expires', Date.now() + data.expires_in * 1000);
+                window.location.href = '/';
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // Redirect if already logged in
+        if (localStorage.getItem('sentinel_token')) {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

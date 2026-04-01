@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShieldPilot — Secure Every AI Agent Before It Ships</title>
+  <meta name="description" content="The only open-source security platform with ML-powered injection detection, MCP vulnerability scanning, and supply chain auditing. 220+ attack patterns. Zero config." />
+  <meta property="og:title" content="ShieldPilot — AI Agent Security" />
+  <meta property="og:description" content="Open-source firewall for AI coding agents. Detect prompt injection, scan MCP configs, audit supply chains." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0D1117;
+      --bg-card:  #161B22;
+      --bg-navy:  #1B2A4A;
+      --accent:   #39D2C0;
+      --accent-dim: rgba(57,210,192,.15);
+      --text:     #E6EDF3;
+      --text-muted: #8B949E;
+      --border:   #30363D;
+      --green:    #3FB950;
+      --red:      #F85149;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13,17,23,.92);
+      backdrop-filter: blur(12px);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0;
+      max-width: 1120px; margin: 0 auto; padding-inline: 24px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 1.1rem; color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo svg { flex-shrink: 0; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a {
+      color: var(--text-muted); font-size: .9rem; transition: color .15s;
+      text-decoration: none;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px; border-radius: 6px; font-size: .875rem;
+      font-weight: 600; cursor: pointer; border: none; transition: .15s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--accent); color: #0D1117;
+    }
+    .btn-primary:hover { background: #2ebfae; text-decoration: none; }
+    .btn-outline {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+    .btn-ghost {
+      background: transparent; color: var(--text-muted);
+      font-size: .875rem; padding: 8px 14px;
+    }
+    .btn-ghost:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Hero ── */
+    #hero {
+      padding: 100px 0 80px;
+      text-align: center;
+      background: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(57,210,192,.12) 0%, transparent 70%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim); border: 1px solid rgba(57,210,192,.3);
+      border-radius: 100px; padding: 4px 14px 4px 8px;
+      font-size: .8rem; color: var(--accent); font-weight: 500;
+      margin-bottom: 24px;
+    }
+    .hero-badge span.dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); display: inline-block;
+    }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800; line-height: 1.15;
+      letter-spacing: -.02em; margin-bottom: 20px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub {
+      max-width: 600px; margin: 0 auto 36px;
+      color: var(--text-muted); font-size: 1.1rem; line-height: 1.7;
+    }
+    .hero-ctas {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 56px;
+    }
+    .pip-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 18px;
+      font-family: var(--font-mono); font-size: .9rem; color: var(--accent);
+      cursor: pointer; transition: border-color .15s, background .15s;
+      position: relative;
+    }
+    .pip-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+    .pip-btn .copy-icon { opacity: .6; transition: opacity .15s; }
+    .pip-btn:hover .copy-icon { opacity: 1; }
+    .pip-btn .copied-label {
+      position: absolute; top: -28px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #0D1117; font-size: .75rem;
+      font-family: var(--font-sans); font-weight: 600;
+      padding: 2px 8px; border-radius: 4px;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+      white-space: nowrap;
+    }
+    .pip-btn.copied .copied-label { opacity: 1; }
+
+    /* ── Terminal Demo ── */
+    .terminal {
+      max-width: 680px; margin: 0 auto;
+      background: #0A0E17; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.6);
+      text-align: left;
+    }
+    .terminal-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 16px; background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+    .dot-r { width: 12px; height: 12px; border-radius: 50%; background: #FF5F56; }
+    .dot-y { width: 12px; height: 12px; border-radius: 50%; background: #FFBD2E; }
+    .dot-g { width: 12px; height: 12px; border-radius: 50%; background: #27C93F; }
+    .terminal-bar span {
+      margin-left: auto; font-size: .78rem; color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .terminal-body {
+      padding: 20px 24px; font-family: var(--font-mono); font-size: .85rem;
+      line-height: 1.8;
+    }
+    .t-prompt { color: var(--accent); }
+    .t-cmd { color: var(--text); }
+    .t-section { color: var(--text-muted); margin-top: 8px; }
+    .t-warn { color: #FFBD2E; }
+    .t-err  { color: var(--red); }
+    .t-ok   { color: var(--green); }
+    .t-info { color: #58A6FF; }
+    .t-dim  { color: #484F58; }
+    .cursor {
+      display: inline-block; width: 8px; height: 1em;
+      background: var(--accent); vertical-align: text-bottom;
+      animation: blink 1.1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── Stats ── */
+    #stats { padding: 80px 0; border-top: 1px solid var(--border); }
+    .stats-label {
+      text-align: center; color: var(--text-muted); font-size: .8rem;
+      text-transform: uppercase; letter-spacing: .12em; margin-bottom: 40px;
+      font-weight: 600;
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .stat-card {
+      background: var(--bg-card); padding: 32px 28px;
+    }
+    .stat-num {
+      font-size: 2.4rem; font-weight: 800; color: var(--accent);
+      line-height: 1; margin-bottom: 8px; letter-spacing: -.02em;
+    }
+    .stat-desc { color: var(--text-muted); font-size: .9rem; line-height: 1.5; }
+
+    /* ── Features ── */
+    #features { padding: 96px 0; }
+    .section-label {
+      display: flex; align-items: center; gap: 8px;
+      color: var(--accent); font-size: .8rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .12em; margin-bottom: 12px;
+    }
+    .section-label::before {
+      content: ''; display: block; width: 20px; height: 2px;
+      background: var(--accent); border-radius: 2px;
+    }
+    h2 {
+      font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800;
+      letter-spacing: -.02em; line-height: 1.2; margin-bottom: 16px;
+    }
+    .section-sub {
+      color: var(--text-muted); max-width: 520px;
+      font-size: 1rem; margin-bottom: 52px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .feature-card {
+      background: var(--bg-card); padding: 28px 28px 32px;
+      transition: background .15s;
+    }
+    .feature-card:hover { background: #1C2333; }
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: var(--accent-dim); border: 1px solid rgba(57,210,192,.25);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px; flex-shrink: 0;
+      color: var(--accent);
+    }
+    .feature-card h3 {
+      font-size: 1rem; font-weight: 700; margin-bottom: 8px;
+    }
+    .feature-card p {
+      color: var(--text-muted); font-size: .9rem; line-height: 1.6;
+    }
+    .feature-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px;
+    }
+    .tag {
+      background: #1E2730; border: 1px solid var(--border);
+      border-radius: 4px; padding: 2px 8px;
+      font-size: .75rem; color: var(--text-muted); font-family: var(--font-mono);
+    }
+
+    /* ── How It Works ── */
+    #how { padding: 96px 0; border-top: 1px solid var(--border); }
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px; margin-top: 48px;
+    }
+    .step { position: relative; }
+    .step-num {
+      font-size: 3.5rem; font-weight: 900; color: var(--border);
+      line-height: 1; margin-bottom: 16px; letter-spacing: -.04em;
+      font-family: var(--font-mono);
+    }
+    .step h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { color: var(--text-muted); font-size: .9rem; line-height: 1.6; }
+    .step code {
+      display: block; margin-top: 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 14px;
+      font-family: var(--font-mono); font-size: .85rem; color: var(--accent);
+    }
+    .step-connector {
+      display: none;
+    }
+
+    /* ── Comparison ── */
+    #compare { padding: 96px 0; border-top: 1px solid var(--border); }
+    .compare-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse;
+      min-width: 640px;
+    }
+    th, td {
+      padding: 14px 18px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+    }
+    thead th { color: var(--text-muted); font-weight: 600; font-size: .8rem;
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    thead th:first-child { color: var(--text); }
+    tbody tr:hover td { background: rgba(57,210,192,.04); }
+    .col-sp { color: var(--accent); font-weight: 700; }
+    .col-sp td:first-child { color: var(--accent); }
+    .chk { color: var(--green); font-size: 1.1rem; }
+    .cross { color: var(--red); font-size: 1.1rem; }
+    .partial { color: #FFBD2E; font-size: .85rem; }
+    td:first-child { color: var(--text); font-weight: 500; }
+
+    /* ── Open Source ── */
+    #oss { padding: 96px 0; border-top: 1px solid var(--border); }
+    .oss-inner {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+      align-items: center;
+    }
+    .oss-inner h2 { margin-bottom: 12px; }
+    .oss-inner p { color: var(--text-muted); margin-bottom: 24px; font-size: .95rem; }
+    .oss-badges {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 6px 12px;
+      font-size: .8rem; color: var(--text-muted);
+    }
+    .badge .badge-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .oss-install {
+      background: #0A0E17; border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+    }
+    .oss-install-bar {
+      display: flex; align-items: center; padding: 8px 14px;
+      background: var(--bg-card); border-bottom: 1px solid var(--border);
+      font-size: .78rem; color: var(--text-muted); font-family: var(--font-mono);
+      gap: 8px;
+    }
+    .oss-install-body { padding: 18px 20px; }
+    .oss-install-body code {
+      display: block; font-family: var(--font-mono); font-size: .88rem;
+      color: var(--accent); margin-bottom: 10px;
+    }
+    .oss-install-body code span { color: var(--text-muted); }
+    .oss-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+    /* ── Social Proof ── */
+    #social { padding: 56px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .sp-grid {
+      display: flex; flex-wrap: wrap; gap: 0;
+    }
+    .sp-item {
+      flex: 1 1 200px; text-align: center; padding: 24px 20px;
+      border-right: 1px solid var(--border);
+    }
+    .sp-item:last-child { border-right: none; }
+    .sp-num {
+      font-size: 2rem; font-weight: 800; color: var(--text);
+      font-family: var(--font-mono); margin-bottom: 4px;
+    }
+    .sp-num em { color: var(--accent); font-style: normal; }
+    .sp-label { color: var(--text-muted); font-size: .85rem; }
+
+    /* ── Footer CTA ── */
+    #footer-cta {
+      padding: 96px 0;
+      text-align: center;
+      background: radial-gradient(ellipse 60% 50% at 50% 100%, rgba(57,210,192,.1) 0%, transparent 70%);
+    }
+    #footer-cta h2 {
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      margin-bottom: 16px;
+    }
+    #footer-cta p {
+      color: var(--text-muted); margin-bottom: 36px; font-size: 1rem;
+    }
+    .cta-btns { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .footer-logo { font-size: .9rem; font-weight: 600; color: var(--text-muted); }
+    .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-muted); font-size: .85rem; transition: color .15s; }
+    .footer-links a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .nav-links .hide-mobile { display: none; }
+      .oss-inner { grid-template-columns: 1fr; gap: 40px; }
+      .sp-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .sp-item:last-child { border-bottom: none; }
+      #hero { padding: 72px 0 56px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      table { font-size: .82rem; }
+      th, td { padding: 10px 12px; }
+    }
+    @media (max-width: 500px) {
+      .hero-ctas { flex-direction: column; align-items: stretch; }
+      .pip-btn { justify-content: center; }
+      .cta-btns { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2L4 6.5V13.5C4 19.2 8.4 24.5 14 26C19.6 24.5 24 19.2 24 13.5V6.5L14 2Z" fill="rgba(57,210,192,.15)" stroke="#39D2C0" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M14 8L14 20M11 13L14 17L18 11" stroke="#39D2C0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      ShieldPilot
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="hide-mobile">Features</a>
+      <a href="#how" class="hide-mobile">How It Works</a>
+      <a href="#compare" class="hide-mobile">Compare</a>
+      <a href="#oss" class="hide-mobile">Open Source</a>
+      <a href="https://github.com/maxwalser001-del/Cyber-Security-" class="hide-mobile" target="_blank" rel="noopener">GitHub</a>
+      <a href="/login" class="btn btn-outline" style="padding:6px 14px;">Log in</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      v0.2.0 — Apache 2.0 · Open Source
+    </div>
+    <h1>Secure Every AI Agent<br><em>Before It Ships</em></h1>
+    <p class="hero-sub">
+      The only open-source security platform with ML-powered injection detection,
+      MCP vulnerability scanning, and supply chain auditing.
+      220+ attack patterns. Zero config.
+    </p>
+    <div class="hero-ctas">
+      <button class="pip-btn" id="pipCopy" onclick="copyPip(this)" aria-label="Copy install command">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span>pip install shieldpilot</span>
+        <svg class="copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span class="copied-label">Copied!</span>
+      </button>
+      <a href="https://github.com/maxwalser001-del/Cyber-Security-" target="_blank" rel="noopener" class="btn btn-outline">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        View on GitHub →
+      </a>
+    </div>
+
+    <!-- Terminal Demo -->
+    <div class="terminal" id="terminal">
+      <div class="terminal-bar">
+        <span class="dot-r"></span>
+        <span class="dot-y"></span>
+        <span class="dot-g"></span>
+        <span>sentinel — zsh</span>
+      </div>
+      <div class="terminal-body" id="terminalBody">
+        <span class="t-prompt">$ </span><span class="t-cmd" id="termCmd"></span><span class="cursor" id="termCursor"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Problem Stats ── -->
+<section id="stats">
+  <div class="container">
+    <p class="stats-label">The AI security landscape is broken</p>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num">36.7%</div>
+        <div class="stat-desc">of MCP servers are vulnerable to SSRF attacks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">88%</div>
+        <div class="stat-desc">of organizations experienced AI agent security incidents</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">1 in 5</div>
+        <div class="stat-desc">packages in agent registries is compromised or malicious</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">5%</div>
+        <div class="stat-desc">of CISOs feel confident they can contain a rogue agent</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section id="features">
+  <div class="container">
+    <div class="section-label">Capabilities</div>
+    <h2>Everything you need to<br>ship agents safely</h2>
+    <p class="section-sub">Six independently useful modules. Works together or standalone. No cloud required.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3>MCP Security Scanner</h3>
+        <p>Scans your MCP server configurations for SSRF vectors, exposed secrets, weak auth, and overprivileged tool definitions before deployment.</p>
+        <div class="feature-tags">
+          <span class="tag">SSRF</span>
+          <span class="tag">Secrets</span>
+          <span class="tag">Auth</span>
+          <span class="tag">Overprivilege</span>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </div>
+        <h3>Supply Chain Auditor</h3>
+        <p>Detects malicious packages, typosquatting attacks, and GPL license violations across your agent's dependency tree.</p>
+        <div class="feature-tags">
+          <span class="tag">Malicious Pkgs</span>
+          <span class="tag">Typosquatting</span>
+          <span class="tag">GPL Check</span>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <h3>ML Prompt Injection</h3>
+        <p>DeBERTa-v3 model + 220+ regex patterns detects injection attacks across all known categories. Runs fully offline — no data leaves your system.</p>
+        <div class="feature-tags">
+          <span class="tag">DeBERTa-v3</span>
+          <span class="tag">220+ Patterns</span>
+          <span class="tag">Offline</span>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3>Indirect Injection Detection</h3>
+        <p>Catches injections hidden in retrieved content — HTML pages, JSON API responses, Markdown files, and zero-width character attacks.</p>
+        <div class="feature-tags">
+          <span class="tag">HTML</span>
+          <span class="tag">JSON</span>
+          <span class="tag">Markdown</span>
+          <span class="tag">Zero-Width</span>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h3>Agent Behavior Monitor</h3>
+        <p>Establishes a command baseline for each agent and flags statistical anomalies — catch unexpected behavior before it escalates to an incident.</p>
+        <div class="feature-tags">
+          <span class="tag">Baseline Learning</span>
+          <span class="tag">Anomaly Detection</span>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3>Policy-as-Code</h3>
+        <p>Define allow/warn/block rules in YAML. Ship with one of 3 default profiles or compose your own stackable rule set. Version-controlled alongside your code.</p>
+        <div class="feature-tags">
+          <span class="tag">YAML Policies</span>
+          <span class="tag">3 Profiles</span>
+          <span class="tag">Stackable Rules</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ── -->
+<section id="how">
+  <div class="container">
+    <div class="section-label">Quickstart</div>
+    <h2>Zero-config setup in 3 steps</h2>
+    <p class="section-sub">From zero to protected in under 2 minutes. No account required for local use.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Install ShieldPilot</h3>
+        <p>Install via pip. Optionally add the <code>[ml]</code> extra for the DeBERTa-v3 model-based detection engine.</p>
+        <code><span style="color:var(--text-muted)"># base</span>
+pip install shieldpilot
+
+<span style="color:var(--text-muted)"># with ML detection</span>
+pip install shieldpilot[ml]</code>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Scan Your MCP Config</h3>
+        <p>Point the scanner at your MCP server configuration file. ShieldPilot auto-detects format and emits structured findings.</p>
+        <code>sentinel mcp-scan config.json</code>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Fix and Ship with Confidence</h3>
+        <p>Remediate flagged findings using the built-in guidance. Install the hook once to protect all future agent sessions.</p>
+        <code>sentinel hook install</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Comparison ── -->
+<section id="compare">
+  <div class="container">
+    <div class="section-label">Comparison</div>
+    <h2>How we stack up</h2>
+    <p class="section-sub">ShieldPilot is the only tool purpose-built for agentic AI security that's fully open source and self-hostable.</p>
+    <div class="compare-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th style="color:var(--accent)">ShieldPilot</th>
+            <th>Lakera</th>
+            <th>Prompt Security</th>
+            <th>DIY / Manual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Open Source</td>
+            <td class="col-sp"><span class="chk">✓</span> Apache 2.0</td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="partial">Varies</span></td>
+          </tr>
+          <tr>
+            <td>Self-Hosted</td>
+            <td class="col-sp"><span class="chk">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="chk">✓</span></td>
+          </tr>
+          <tr>
+            <td>MCP Scanning</td>
+            <td class="col-sp"><span class="chk">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+          <tr>
+            <td>ML Injection Detection</td>
+            <td class="col-sp"><span class="chk">✓</span> DeBERTa-v3</td>
+            <td><span class="chk">✓</span></td>
+            <td><span class="chk">✓</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+          <tr>
+            <td>Supply Chain Audit</td>
+            <td class="col-sp"><span class="chk">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="partial">Partial</span></td>
+          </tr>
+          <tr>
+            <td>Offline Mode</td>
+            <td class="col-sp"><span class="chk">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="chk">✓</span></td>
+          </tr>
+          <tr>
+            <td>Policy-as-Code</td>
+            <td class="col-sp"><span class="chk">✓</span> YAML</td>
+            <td><span class="partial">Partial</span></td>
+            <td><span class="partial">Partial</span></td>
+            <td><span class="chk">✓</span></td>
+          </tr>
+          <tr>
+            <td>Price</td>
+            <td class="col-sp"><span class="chk">Free</span></td>
+            <td>$$$$</td>
+            <td>$$$$</td>
+            <td>Engineering time</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── Social Proof ── -->
+<section id="social">
+  <div class="container">
+    <div class="sp-grid">
+      <div class="sp-item">
+        <div class="sp-num"><em>220</em>+</div>
+        <div class="sp-label">Attack Patterns</div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-num"><em>5</em></div>
+        <div class="sp-label">Languages Supported</div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-num"><em>2,960</em></div>
+        <div class="sp-label">Tests Passing</div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-num">&lt;<em>1</em>ms</div>
+        <div class="sp-label">Avg Scan Latency</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Open Source ── -->
+<section id="oss">
+  <div class="container">
+    <div class="oss-inner">
+      <div>
+        <div class="section-label">Open Source</div>
+        <h2>Built in the open.<br>Auditable by design.</h2>
+        <p>Every detection rule, every ML model weight, every policy — visible and auditable. No black-box decisions when it comes to your agent's security posture.</p>
+        <div class="oss-badges">
+          <span class="badge">
+            <span class="badge-dot" style="background:#3FB950"></span>
+            Apache 2.0 License
+          </span>
+          <span class="badge" id="ghStars">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:#FFBD2E"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            ★ Stars on GitHub
+          </span>
+          <span class="badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Active Development
+          </span>
+        </div>
+        <div class="oss-links">
+          <a href="https://github.com/maxwalser001-del/Cyber-Security-" target="_blank" rel="noopener" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            View on GitHub
+          </a>
+          <a href="https://pypi.org/project/shieldpilot/" target="_blank" rel="noopener" class="btn btn-outline">PyPI</a>
+        </div>
+      </div>
+      <div>
+        <div class="oss-install">
+          <div class="oss-install-bar">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
+            Installation
+          </div>
+          <div class="oss-install-body">
+            <code><span style="color:var(--text-muted)"># Core (no dependencies)</span>
+pip install shieldpilot</code>
+            <code><span style="color:var(--text-muted)"># With ML model</span>
+pip install shieldpilot[ml]</code>
+            <code><span style="color:var(--text-muted)"># Hook install (one-time)</span>
+sentinel hook install</code>
+            <code><span style="color:var(--text-muted)"># Scan MCP config</span>
+sentinel mcp-scan config.json</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer CTA ── -->
+<section id="footer-cta">
+  <div class="container">
+    <h2>Stop Hoping Your Agent Behaves.<br><em style="color:var(--accent);font-style:normal">Start Knowing.</em></h2>
+    <p>Open source. Self-hosted. No vendor lock-in. Protecting AI agents at every layer.</p>
+    <div class="cta-btns">
+      <a href="https://github.com/maxwalser001-del/Cyber-Security-" target="_blank" rel="noopener" class="btn btn-primary" style="padding:12px 28px;font-size:.95rem;">
+        Get Started Free →
+      </a>
+      <a href="/login" class="btn btn-outline" style="padding:12px 28px;font-size:.95rem;">
+        Sign in to Dashboard
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <span class="footer-logo">ShieldPilot © <span id="footerYear"></span></span>
+      <div class="footer-links">
+        <a href="https://github.com/maxwalser001-del/Cyber-Security-" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://pypi.org/project/shieldpilot/" target="_blank" rel="noopener">PyPI</a>
+        <a href="/login">Dashboard</a>
+        <a href="/app#/legal/privacy">Privacy</a>
+        <a href="/app#/legal/terms">Terms</a>
+        <a href="/app#/legal/impressum">Impressum</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── Year ──
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+  // ── Copy pip install ──
+  function copyPip(btn) {
+    navigator.clipboard.writeText('pip install shieldpilot').then(() => {
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), 1800);
+    });
+  }
+
+  // ── GitHub Stars ──
+  (async () => {
+    try {
+      const r = await fetch('https://api.github.com/repos/maxwalser001-del/Cyber-Security-', {
+        headers: { Accept: 'application/vnd.github+json' }
+      });
+      if (!r.ok) return;
+      const d = await r.json();
+      const stars = d.stargazers_count;
+      if (typeof stars === 'number') {
+        document.getElementById('ghStars').innerHTML =
+          `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:#FFBD2E"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          ★ ${stars.toLocaleString()} Stars`;
+      }
+    } catch (_) { /* silently fail */ }
+  })();
+
+  // ── Terminal Animation ──
+  const lines = [
+    { type: 'cmd', text: 'sentinel mcp-scan config.json' },
+    { type: 'out', text: '' },
+    { type: 'section', text: '  ShieldPilot MCP Scanner v0.2.0' },
+    { type: 'dim', text: '  ─────────────────────────────────' },
+    { type: 'out', text: '' },
+    { type: 'info', text: '  [•] Scanning config.json ...' },
+    { type: 'out', text: '' },
+    { type: 'warn', text: '  [WARN]  Tool "read_file" has no path restriction' },
+    { type: 'warn', text: '  [WARN]  Server exposes internal network routes (SSRF risk)' },
+    { type: 'err', text: '  [CRIT]  AWS_SECRET_ACCESS_KEY found in env block' },
+    { type: 'out', text: '' },
+    { type: 'section', text: '  Summary: 2 warnings · 1 critical · 0 info' },
+    { type: 'ok', text: '  Fix critical findings before deploying.' },
+    { type: 'out', text: '' },
+    { type: 'prompt', text: '$ ', after: true },
+  ];
+
+  const termBody  = document.getElementById('terminalBody');
+  const termCmd   = document.getElementById('termCmd');
+  const termCursor = document.getElementById('termCursor');
+
+  async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  async function typeText(el, text, speed = 38) {
+    for (const ch of text) {
+      el.textContent += ch;
+      await sleep(speed + Math.random() * 30);
+    }
+  }
+
+  async function runAnimation() {
+    await sleep(600);
+    // Type the command
+    await typeText(termCmd, lines[0].text, 45);
+    await sleep(320);
+    termCursor.style.display = 'none';
+
+    // Output lines
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      await sleep(i === 1 ? 180 : 60);
+      const row = document.createElement('div');
+      if (line.type === 'out')     row.innerHTML = '&nbsp;';
+      else if (line.type === 'prompt') {
+        row.innerHTML = '<span class="t-prompt">$ </span><span class="cursor"></span>';
+      } else {
+        const cls = {
+          section: 't-section', dim: 't-dim', info: 't-info',
+          warn: 't-warn', err: 't-err', ok: 't-ok'
+        }[line.type] || 't-cmd';
+        row.innerHTML = `<span class="${cls}">${escHtml(line.text)}</span>`;
+      }
+      termBody.appendChild(row);
+    }
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Intersection observer — start animation when visible
+  const obs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      obs.disconnect();
+      runAnimation();
+    }
+  }, { threshold: 0.3 });
+  obs.observe(document.getElementById('terminal'));
+
+  // ── Nav smooth scroll ──
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+</script>
+</body>
+</html>

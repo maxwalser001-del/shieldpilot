@@ -1,0 +1,39 @@
+name: "Default Safe"
+version: "1"
+description: "Basic safety rules — deny dangerous operations, warn on network"
+rules:
+  - action: deny
+    tool: bash
+    pattern: "rm\\s+-rf\\s+[/~]|rm\\s+--no-preserve-root"
+    severity: critical
+    reason: "Recursive deletion of root/home directory"
+  - action: deny
+    tool: bash
+    pattern: "mkfs|dd\\s+if=|format\\s+[A-Z]:"
+    severity: critical
+    reason: "Disk formatting operation"
+  - action: deny
+    tool: bash
+    pattern: "chmod\\s+777|chmod\\s+-R\\s+777"
+    severity: high
+    reason: "Overly permissive file permissions"
+  - action: warn
+    tool: bash
+    pattern: "curl|wget|fetch"
+    severity: high
+    reason: "Network download — verify source"
+  - action: warn
+    tool: bash
+    pattern: "sudo\\s+|su\\s+"
+    severity: high
+    reason: "Privilege escalation"
+  - action: allow
+    tool: read
+    pattern: "*"
+    severity: low
+    reason: "File reads are generally safe"
+  - action: allow
+    tool: glob
+    pattern: "*"
+    severity: low
+    reason: "File listing is safe"

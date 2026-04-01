@@ -1,0 +1,39 @@
+{
+  "name": "@shieldpilot/openclaw-plugin",
+  "version": "1.0.0",
+  "description": "ShieldPilot security plugin for OpenClaw - real-time risk analysis for AI coding agents",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "lint": "eslint index.js",
+    "install-hook": "bash install.sh"
+  },
+  "keywords": [
+    "openclaw",
+    "security",
+    "ai-safety",
+    "prompt-injection",
+    "shieldpilot",
+    "risk-analysis"
+  ],
+  "author": "MaxtheCreator",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maxwalser001-del/Cyber-Security-"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "index.js",
+    "manifest.json",
+    "install.sh",
+    "README.md"
+  ],
+  "openclaw": {
+    "hooks": {
+      "preToolExecution": "./index.js"
+    }
+  }
+}

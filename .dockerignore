@@ -1,0 +1,100 @@
+# ============================================================
+# ShieldPilot — .dockerignore
+# ============================================================
+# Keep the Docker build context small and exclude secrets,
+# caches, dev tooling, and runtime data.
+# ============================================================
+
+# --- Version control ---
+.git
+.gitignore
+
+# --- Python caches ---
+__pycache__
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+build/
+dist/
+sdist/
+wheels/
+.eggs/
+
+# --- Virtual environments ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- IDE / editor ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- Testing ---
+tests/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+
+# --- Secrets and credentials ---
+.env
+.env.*
+*.pem
+*.key
+credentials/
+
+# --- Database (runtime data, not baked into image) ---
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.db.backup.*
+
+# --- Claude / agent config ---
+.claude/
+CLAUDE.md
+
+# --- Documentation and non-runtime files ---
+docs/
+features/
+infosite/
+LICENSE
+# Exclude markdown docs except README.md (needed by pyproject.toml build)
+!README.md
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Temp ---
+tmp/
+temp/
+*.tmp
+*.bak
+
+# --- Training data / ML artifacts (not needed in container) ---
+dataset_*.txt
+clean_shell_*.txt
+hard_negatives_*.txt
+boosters_holdout.txt
+candidate_set.jsonl
+*.joblib
+
+# --- Stray files ---
+=*
+
+# --- Docker files (no recursion) ---
+Dockerfile
+docker-compose.yml
+docker-compose.yaml

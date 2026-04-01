@@ -1,0 +1,117 @@
+sentinel:
+  mode: enforce
+  risk_thresholds:
+    block: 80
+    warn: 40
+    allow: 0
+  llm:
+    enabled: false
+    model: claude-sonnet-4-20250514
+    max_tokens: 512
+    score_range:
+    - 40
+    - 79
+  whitelist:
+    commands:
+    - ls
+    - cat
+    - echo
+    - pwd
+    - whoami
+    - date
+    - head
+    - tail
+    - wc
+    - grep
+    - find
+    - which
+    - man
+    - help
+    domains: []
+  blacklist:
+    commands:
+    - rm -rf /
+    - rm -rf /*
+    - mkfs
+    - dd if=/dev/zero
+    - ':(){:|:&};:'
+    - fork bomb
+    domains:
+    - pastebin.com
+    - transfer.sh
+    - ngrok.io
+    - requestbin.com
+  protected_paths:
+  - /etc
+  - /var
+  - /boot
+  - /sys
+  - ~/.ssh
+  - ~/.aws
+  - ~/.gnupg
+  - ~/.config
+  secrets_patterns:
+  - (?i)(api[_-]?key|secret|password|token|credential)\s*[=:]\s*['"]?[A-Za-z0-9+/=]{16,}
+  - AKIA[0-9A-Z]{16}
+  - sk-[a-zA-Z0-9]{20,}
+  - ghp_[a-zA-Z0-9]{36}
+  - (?i)bearer\s+[a-zA-Z0-9._\-]{20,}
+  sandbox:
+    enabled: true
+    timeout: 30
+    max_memory_mb: 512
+    max_file_size_mb: 100
+    restricted_env_vars:
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_ACCESS_KEY_ID
+    - ANTHROPIC_API_KEY
+    - OPENAI_API_KEY
+    - GITHUB_TOKEN
+    - STRIPE_SECRET_KEY
+  plugins:
+    enabled: true
+    directory: plugins
+  logging:
+    database: sentinel.db
+    chain_hashing: true
+    retention_days: 90
+  auth:
+    # Secret key: set via SHIELDPILOT_SECRET_KEY env var (auto-generated if empty)
+    secret_key: ''
+    algorithm: HS256
+    access_token_expire_minutes: 1440
+    default_admin_user: admin
+    default_admin_password: ''
+    local_first: true  # Skip auth for localhost connections (local = trusted)
+    # Google OAuth: set via GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET env vars
+    google_client_id: ''
+    google_client_secret: ''
+    google_redirect_uri: http://localhost:8420/api/auth/google/callback
+    # Super-admin: set via SHIELDPILOT_SUPER_ADMIN_* env vars
+    super_admin_email: ''
+    super_admin_password: ''
+    super_admin_username: ''
+    # SMTP: set via SMTP_USER / SMTP_PASSWORD / SMTP_FROM_EMAIL env vars
+    smtp_user: ''
+    smtp_password: ''
+    smtp_from_email: ''
+    password_reset_url: http://localhost:8420/login?reset_token=
+  billing:
+    enabled: false
+    tier: free
+    # Stripe: set via STRIPE_PUBLISHABLE_KEY / STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET env vars
+    stripe_publishable_key: ''
+    stripe_secret_key: ''
+    stripe_webhook_secret: ''
+    upgrade_url: '#/pricing'
+  legal:
+    company_name: ''
+    address_line1: ''
+    address_line2: ''
+    country: Germany
+    managing_director: ''
+    registration_court: ''
+    registration_number: ''
+    vat_id: ''
+    contact_email: ''
+    contact_phone: ''
