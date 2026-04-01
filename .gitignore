@@ -1,0 +1,120 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.hypothesis/
+
+# Secrets and config - NEVER commit these
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials/
+
+# Temporary test/debug scripts (may contain credentials)
+test_demo.py
+test_live.py
+test_free_user.py
+test_free_tracking.py
+test_tracking.py
+test_debug_commands.py
+generate_demo_data.py
+generate_live_demo.py
+gen_usage.py
+check_usage.py
+reset_free_pw.py
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build artifacts
+*.whl
+*.tar.gz
+*.zip
+
+# Documentation build
+docs/_build/
+site/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Training / evaluation datasets (large, generated)
+dataset_*.txt
+clean_shell_*.txt
+hard_negatives_*.txt
+boosters_holdout.txt
+candidate_set.jsonl
+
+# ML model artifacts
+*.joblib
+*.pkl
+*.onnx
+
+# MagicMock filesystem artifacts (test bug)
+<MagicMock*
+
+# Alembic (config is project-specific, keep alembic.ini tracked)
+# sentinelai/migrations/versions/ are tracked
+
+# Claude Code project files
+.claude/settings.json
+infosite/
+.claude/worktrees/

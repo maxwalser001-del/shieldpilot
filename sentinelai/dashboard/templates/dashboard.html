@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <meta name="description" content="ShieldPilot Local Dashboard - Read-only monitoring">
+    <title>ShieldPilot - Local Dashboard</title>
+    <link rel="stylesheet" href="/static/css/sentinel.css?v=7">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Local Dashboard Overrides -------------------------------- */
+        /* These styles extend sentinel.css for the standalone dashboard. */
+
+        body {
+            overflow: auto;
+        }
+
+        .dash-wrapper {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .dash-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--border-default);
+            margin-bottom: var(--space-lg);
+            flex-wrap: wrap;
+        }
+
+        .dash-header-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .dash-header-logo svg {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .dash-header-brand {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            letter-spacing: 0.05em;
+        }
+
+        .dash-header-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-left: var(--space-xs);
+        }
+
+        .dash-header-badges {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-left: auto;
+        }
+
+        .dash-header-refresh {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        /* Tier badge colors */
+        .tier-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-family: var(--font-mono);
+        }
+
+        .tier-badge--free {
+            background-color: rgba(107, 114, 128, 0.2);
+            color: #9CA3AF;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        .tier-badge--pro {
+            background-color: rgba(57, 210, 192, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(57, 210, 192, 0.3);
+        }
+
+        .tier-badge--enterprise {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #F59E0B;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .tier-badge--unlimited {
+            background: linear-gradient(135deg, rgba(57, 210, 192, 0.15), rgba(188, 140, 255, 0.15));
+            color: var(--accent-cyan);
+            border: 1px solid rgba(57, 210, 192, 0.3);
+        }
+
+        /* Platform tool badges */
+        .tool-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            letter-spacing: 0.03em;
+            font-family: var(--font-mono);
+        }
+
+        .tool-badge--claude {
+            background-color: rgba(57, 210, 192, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(57, 210, 192, 0.3);
+        }
+
+        .tool-badge--cursor {
+            background-color: rgba(188, 140, 255, 0.15);
+            color: var(--accent-purple);
+            border: 1px solid rgba(188, 140, 255, 0.3);
+        }
+
+        .tool-badge--copilot {
+            background-color: rgba(88, 166, 255, 0.15);
+            color: var(--color-info);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+        }
+
+        .tool-badge--windsurf {
+            background-color: rgba(63, 185, 80, 0.15);
+            color: var(--color-allow);
+            border: 1px solid rgba(63, 185, 80, 0.3);
+        }
+
+        .tool-badge--aider {
+            background-color: rgba(210, 153, 34, 0.15);
+            color: var(--color-warn);
+            border: 1px solid rgba(210, 153, 34, 0.3);
+        }
+
+        .tool-badge--multiple {
+            background: linear-gradient(135deg, rgba(57, 210, 192, 0.12), rgba(188, 140, 255, 0.12));
+            color: var(--accent-cyan);
+            border: 1px solid rgba(57, 210, 192, 0.25);
+        }
+
+        .tool-badge--none {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-default);
+        }
+
+        .tool-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Stats grid */
+        .dash-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Section */
+        .dash-section {
+            margin-bottom: var(--space-lg);
+        }
+
+        .dash-section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .dash-table-wrap {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(22, 27, 34, 0.95) 100%);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            overflow: auto;
+            max-height: 400px;
+        }
+
+        /* Command text in table — monospace, truncated */
+        .cmd-text {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Timestamp column */
+        .ts-cell {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        /* Empty state */
+        .dash-empty {
+            text-align: center;
+            padding: var(--space-xl) var(--space-lg);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Loading spinner (inline) */
+        .dash-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+            color: var(--text-muted);
+        }
+
+        .dash-loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-default);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: dash-spin 0.6s linear infinite;
+            margin-left: var(--space-sm);
+        }
+
+        @keyframes dash-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .dash-footer {
+            text-align: center;
+            padding: var(--space-lg) 0;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border-default);
+            margin-top: var(--space-lg);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dash-wrapper {
+                padding: var(--space-md);
+            }
+
+            .dash-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dash-header-badges {
+                margin-left: 0;
+            }
+
+            .dash-stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cmd-text {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dash-wrapper">
+
+    <!-- Header -->
+    <header class="dash-header">
+        <div class="dash-header-logo">
+            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M14 2L4 7v7c0 6.075 4.25 11.425 10 12.75C19.75 25.425 24 20.075 24 14V7L14 2z"
+                      stroke="#39D2C0" stroke-width="1.8" fill="rgba(57,210,192,0.08)"/>
+                <path d="M14 8l-4 8h2.5v4h3v-4H18l-4-8z" fill="#39D2C0" opacity="0.9"/>
+            </svg>
+            <span class="dash-header-brand">SHIELDPILOT</span>
+            <span class="dash-header-subtitle">Local Dashboard</span>
+        </div>
+        <div class="dash-header-badges">
+            <span id="license-badge"></span>
+            <span id="platform-badges"></span>
+            <span class="dash-header-refresh" id="refresh-indicator"></span>
+        </div>
+    </header>
+
+    <!-- Stats -->
+    <section class="dash-stat-grid" id="stats-grid" aria-label="Dashboard statistics">
+        <div class="dash-loading">Loading stats</div>
+    </section>
+
+    <!-- Recent Commands -->
+    <section class="dash-section" aria-label="Recent commands">
+        <h2 class="dash-section-title">Recent Commands</h2>
+        <div class="dash-table-wrap" id="commands-table">
+            <div class="dash-loading">Loading commands</div>
+        </div>
+    </section>
+
+    <!-- Recent Incidents -->
+    <section class="dash-section" aria-label="Recent incidents">
+        <h2 class="dash-section-title">Recent Incidents</h2>
+        <div class="dash-table-wrap" id="incidents-table">
+            <div class="dash-loading">Loading incidents</div>
+        </div>
+    </section>
+
+    <!-- Recent Scans -->
+    <section class="dash-section" aria-label="Recent prompt scans">
+        <h2 class="dash-section-title">Recent Prompt Scans</h2>
+        <div class="dash-table-wrap" id="scans-table">
+            <div class="dash-loading">Loading scans</div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="dash-footer">
+        ShieldPilot Local Dashboard &mdash; Read-only &middot; No auth required &middot; Auto-refresh 30s
+    </footer>
+
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// ShieldPilot Local Dashboard — Client-Side Logic
+// ---------------------------------------------------------------------------
+// All dynamic content is HTML-escaped via escapeHtml() before insertion.
+// ---------------------------------------------------------------------------
+
+/**
+ * Escape HTML entities to prevent XSS.
+ * @param {*} str
+ * @returns {string}
+ */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/**
+ * Truncate a string at max length, adding an ellipsis.
+ * @param {string} text
+ * @param {number} max
+ * @returns {string}
+ */
+function truncate(text, max) {
+    if (!text) return '';
+    return text.length > max ? text.slice(0, max) + '\u2026' : text;
+}
+
+/**
+ * Map a numeric risk score (0-100) to a severity level string.
+ * @param {number} score
+ * @returns {string}
+ */
+function scoreLevel(score) {
+    var n = Number(score);
+    if (n >= 90) return 'critical';
+    if (n >= 70) return 'high';
+    if (n >= 40) return 'medium';
+    if (n >= 10) return 'low';
+    return 'none';
+}
+
+/**
+ * Format an ISO timestamp to a short local string.
+ * @param {string} iso
+ * @returns {string}
+ */
+function fmtTime(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+         + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+/**
+ * Build an action badge HTML string.
+ * @param {string} action - "allow" | "warn" | "block"
+ * @returns {string}
+ */
+function actionBadge(action) {
+    var cls = 'badge badge-' + escapeHtml(action || 'allow');
+    return '<span class="' + cls + '">' + escapeHtml((action || '').toUpperCase()) + '</span>';
+}
+
+/**
+ * Build a severity badge HTML string.
+ * @param {string} severity - "critical" | "high" | "medium" | "low"
+ * @returns {string}
+ */
+function severityBadge(severity) {
+    var cls = 'badge badge-' + escapeHtml(severity || 'low');
+    return '<span class="' + cls + '">' + escapeHtml((severity || '').toUpperCase()) + '</span>';
+}
+
+/**
+ * Build a risk score badge HTML string.
+ * @param {number} score
+ * @returns {string}
+ */
+function scoreBadge(score) {
+    var level = scoreLevel(score);
+    return '<span class="score" data-level="' + escapeHtml(level) + '">'
+         + escapeHtml(String(score))
+         + '</span>';
+}
+
+// ---------------------------------------------------------------------------
+// Render functions
+// ---------------------------------------------------------------------------
+
+function renderStats(data) {
+    var el = document.getElementById('stats-grid');
+    if (!data) { el.innerHTML = '<div class="dash-empty">No stats available</div>'; return; }
+
+    el.innerHTML =
+        statCard(data.total_commands, 'Total Commands', '', 'T')
+      + statCard(data.blocked_count, 'Blocked', 'accent-block', 'B')
+      + statCard(data.total_incidents, 'Incidents', 'accent-warn', 'I')
+      + statCard(data.avg_risk_score, 'Avg Risk Score', '', 'R')
+      + statCard(data.commands_today, 'Commands Today', '', 'D')
+      + statCard(data.scans_today, 'Scans Today', '', 'S');
+}
+
+function statCard(value, label, accentClass, icon) {
+    return '<div class="stat-card ' + escapeHtml(accentClass || '') + '">'
+         + '<div class="stat-header"><span class="stat-icon">' + escapeHtml(icon || '') + '</span></div>'
+         + '<div class="stat-number">' + escapeHtml(String(value)) + '</div>'
+         + '<div class="stat-label">' + escapeHtml(label) + '</div>'
+         + '</div>';
+}
+
+function renderCommands(rows) {
+    var el = document.getElementById('commands-table');
+    if (!rows || rows.length === 0) {
+        el.innerHTML = '<div class="dash-empty">No commands logged yet</div>';
+        return;
+    }
+    var html = '<table class="data-table"><thead><tr>'
+             + '<th>Timestamp</th><th>Command</th><th>Score</th>'
+             + '<th>Level</th><th>Action</th><th>Executed</th>'
+             + '</tr></thead><tbody>';
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        html += '<tr>'
+             + '<td class="ts-cell">' + escapeHtml(fmtTime(r.timestamp)) + '</td>'
+             + '<td class="cmd-text" title="' + escapeHtml(r.command) + '">' + escapeHtml(truncate(r.command, 80)) + '</td>'
+             + '<td>' + scoreBadge(r.risk_score) + '</td>'
+             + '<td>' + severityBadge(scoreLevel(r.risk_score)) + '</td>'
+             + '<td>' + actionBadge(r.action_taken) + '</td>'
+             + '<td>' + (r.executed ? '<span class="badge badge-allow">YES</span>' : '<span class="badge badge-info">NO</span>') + '</td>'
+             + '</tr>';
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+}
+
+function renderIncidents(rows) {
+    var el = document.getElementById('incidents-table');
+    if (!rows || rows.length === 0) {
+        el.innerHTML = '<div class="dash-empty">No incidents recorded</div>';
+        return;
+    }
+    var html = '<table class="data-table"><thead><tr>'
+             + '<th>Timestamp</th><th>Severity</th><th>Category</th>'
+             + '<th>Title</th><th>Resolved</th>'
+             + '</tr></thead><tbody>';
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        html += '<tr>'
+             + '<td class="ts-cell">' + escapeHtml(fmtTime(r.timestamp)) + '</td>'
+             + '<td>' + severityBadge(r.severity) + '</td>'
+             + '<td>' + escapeHtml(r.category || '') + '</td>'
+             + '<td>' + escapeHtml(truncate(r.title, 60)) + '</td>'
+             + '<td>' + (r.resolved ? '<span class="badge badge-allow">YES</span>' : '<span class="badge badge-block">OPEN</span>') + '</td>'
+             + '</tr>';
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+}
+
+function renderScans(rows) {
+    var el = document.getElementById('scans-table');
+    if (!rows || rows.length === 0) {
+        el.innerHTML = '<div class="dash-empty">No prompt scans recorded</div>';
+        return;
+    }
+    var html = '<table class="data-table"><thead><tr>'
+             + '<th>Timestamp</th><th>Source</th><th>Score</th>'
+             + '<th>Threats</th><th>Recommendation</th>'
+             + '</tr></thead><tbody>';
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        html += '<tr>'
+             + '<td class="ts-cell">' + escapeHtml(fmtTime(r.timestamp)) + '</td>'
+             + '<td>' + escapeHtml(truncate(r.source, 50)) + '</td>'
+             + '<td>' + scoreBadge(r.overall_score) + '</td>'
+             + '<td>' + escapeHtml(String(r.threat_count)) + '</td>'
+             + '<td>' + escapeHtml(truncate(r.recommendation || '', 60)) + '</td>'
+             + '</tr>';
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+}
+
+// ---------------------------------------------------------------------------
+// Header badges
+// ---------------------------------------------------------------------------
+
+var TOOL_BADGE_MAP = {
+    'Claude Code': 'claude',
+    'Cursor':      'cursor',
+    'Copilot':     'copilot',
+    'Windsurf':    'windsurf',
+    'Aider':       'aider'
+};
+
+function renderPlatformBadges(data) {
+    var el = document.getElementById('platform-badges');
+    if (!data || !data.tools || data.tools.length === 0) {
+        el.innerHTML = '<span class="tool-badge tool-badge--none">'
+                     + '<span class="tool-badge-dot"></span>No AI Tools Detected</span>';
+        return;
+    }
+
+    var html = '';
+    for (var i = 0; i < data.tools.length; i++) {
+        var tool = data.tools[i];
+        var variant = TOOL_BADGE_MAP[tool] || 'none';
+        if (data.tools.length > 1) variant = 'multiple';
+        html += '<span class="tool-badge tool-badge--' + escapeHtml(variant) + '">'
+              + '<span class="tool-badge-dot"></span>'
+              + escapeHtml(tool) + '</span> ';
+    }
+    el.innerHTML = html;
+}
+
+function renderLicenseBadge(data) {
+    var el = document.getElementById('license-badge');
+    if (!data || !data.tier) { el.innerHTML = ''; return; }
+    var tier = data.tier.toLowerCase();
+    el.innerHTML = '<span class="tier-badge tier-badge--' + escapeHtml(tier) + '">'
+                 + escapeHtml(data.tier.toUpperCase()) + '</span>';
+}
+
+// ---------------------------------------------------------------------------
+// Data fetching
+// ---------------------------------------------------------------------------
+
+function fetchJSON(url) {
+    return fetch(url)
+        .then(function(res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
+        .catch(function(err) {
+            console.error('Dashboard fetch error (' + url + '):', err);
+            return null;
+        });
+}
+
+function refreshAll() {
+    var indicator = document.getElementById('refresh-indicator');
+    var now = new Date();
+    var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+    indicator.textContent = 'Updated ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+
+    fetchJSON('/api/stats').then(renderStats);
+    fetchJSON('/api/commands').then(renderCommands);
+    fetchJSON('/api/incidents').then(renderIncidents);
+    fetchJSON('/api/scans').then(renderScans);
+    fetchJSON('/api/platform').then(renderPlatformBadges);
+    fetchJSON('/api/license').then(renderLicenseBadge);
+}
+
+// ---------------------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------------------
+
+document.addEventListener('DOMContentLoaded', function() {
+    refreshAll();
+
+    // Auto-refresh every 30 seconds
+    setInterval(refreshAll, 30000);
+});
+</script>
+
+</body>
+</html>

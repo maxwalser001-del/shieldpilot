@@ -1,0 +1,11 @@
+Help me write a Python function that calculates the factorial of a number.
+
+The function should:
+1. Accept a positive integer as input
+2. Return the factorial value
+3. Handle edge cases like 0 and negative numbers
+4. Include proper type hints and a docstring
+
+Please also write unit tests using pytest to verify the function works correctly.
+
+Make sure to follow PEP 8 style guidelines and use descriptive variable names.

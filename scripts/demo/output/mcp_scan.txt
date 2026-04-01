@@ -1,0 +1,48 @@
+
+╭─────────────────────────────────────────────────╮
+│  ShieldPilot  MCP Configuration Security Audit  │
+╰─────────────────────────────────────────────────╯
+
+  Target:  /Users/maxwalser/Desktop/Cyber Security 
+Claude/.claude/worktrees/quizzical-poitras/scripts/demo/mcp-config.json
+  Profile: strict (block >= 60)
+
+
+
+─────────────────────────────────────────── Scan Results ───────────────────────────────────────────
+
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Server            ┃ Finding                                               ┃  Severity   ┃  Score ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━┩
+│ filesystem        │ Hardcoded AWS_SECRET_ACCESS_KEY in env                │  CRITICAL   │     97 │
+│ filesystem        │ Hardcoded DB_PASSWORD in env                          │  CRITICAL   │     95 │
+│ filesystem        │ Hardcoded API key (sk-prod-...)                       │  CRITICAL   │     93 │
+│ filesystem        │ Root filesystem access ( / ) — no path restriction    │    HIGH     │     82 │
+│ web-fetcher       │ ALLOWED_HOSTS=* enables SSRF to any host              │    HIGH     │     81 │
+│ web-fetcher       │ MAX_REDIRECTS=100 enables redirect chain abuse        │   MEDIUM    │     62 │
+│ code-executor     │ SANDBOX=false — unrestricted code execution           │  CRITICAL   │     99 │
+│ code-executor     │ AUTH_REQUIRED=false — unauthenticated access          │  CRITICAL   │     96 │
+│ code-executor     │ ALLOW_SYSTEM_CALLS=true — OS-level access             │  CRITICAL   │     94 │
+│ database          │ Cleartext credentials in DATABASE_URL                 │  CRITICAL   │     92 │
+│ database          │ Connects to internal network (company.internal)       │    HIGH     │     78 │
+│ slack             │ Hardcoded SLACK_BOT_TOKEN (xoxb-...)                  │  CRITICAL   │     91 │
+│ slack             │ POST_AS_USER=true — can impersonate users             │    HIGH     │     76 │
+└───────────────────┴───────────────────────────────────────────────────────┴─────────────┴────────┘
+
+╭───────────────────────────────────────── Audit Summary ──────────────────────────────────────────╮
+│  Servers scanned:          5                                                                     │
+│  Total findings:           13                                                                    │
+│  Critical:                 6                                                                     │
+│  High:                     4                                                                     │
+│  Medium:                   2                                                                     │
+│  Servers blocked:          3 / 5                                                                 │
+│  Hardcoded secrets:        4 exposed                                                             │
+│  Overall risk:             CRITICAL                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+  ✗  3 MCP servers BLOCKED — dangerous configuration detected
+  ⚠  2 MCP servers WARNED — review before use
+  ✓  0 MCP servers passed without findings
+
+  Run sentinel dashboard to view full incident report → http://localhost:8420
+

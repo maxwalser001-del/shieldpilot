@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <meta name="description" content="ShieldPilot Security Dashboard">
+    <title>ShieldPilot Dashboard</title>
+    <link rel="stylesheet" href="/static/css/sentinel.css?v=12">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Open Props: shadows + easings -->
+    <link rel="stylesheet" href="https://unpkg.com/open-props@1.7.8/shadows.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/open-props@1.7.8/easings.min.css">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@5.6.0/dist/apexcharts.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.575.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+    <a href="#page-content" class="skip-to-content">Skip to main content</a>
+
+    <div class="app-layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="sidebar-logo">
+                <div class="logo-icon-wrapper">
+                    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M14 2L4 7v7c0 6.075 4.25 11.425 10 12.75C19.75 25.425 24 20.075 24 14V7L14 2z"
+                              stroke="white" stroke-width="1.8" fill="rgba(255,255,255,0.08)"/>
+                        <path d="M14 8l-4 8h2.5v4h3v-4H18l-4-8z" fill="white" opacity="0.9"/>
+                    </svg>
+                </div>
+                <div class="logo-info">
+                    <span class="logo-text">ShieldPilot</span>
+                    <div class="logo-version">
+                        <span class="version-dot"></span>
+                        <span class="version-text">v1.0.0 Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Primary">
+                <a class="nav-item active" data-route="#/dashboard" href="#/dashboard">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="layout-dashboard"></i></span>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+                <a class="nav-item" data-route="#/commands" href="#/commands">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="terminal"></i></span>
+                    <span class="nav-label">Commands</span>
+                </a>
+                <a class="nav-item" data-route="#/incidents" href="#/incidents">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="triangle-alert"></i></span>
+                    <span class="nav-label">Incidents</span>
+                    <span class="nav-badge" id="incident-count">0</span>
+                </a>
+                <a class="nav-item" data-route="#/scans" href="#/scans">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="scan-search"></i></span>
+                    <span class="nav-label">Scans</span>
+                </a>
+                <a class="nav-item" data-route="#/activity" href="#/activity">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="activity"></i></span>
+                    <span class="nav-label">Activity</span>
+                </a>
+                <a class="nav-item" data-route="#/library" href="#/library">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="book-open"></i></span>
+                    <span class="nav-label">Library</span>
+                </a>
+                <a class="nav-item" data-route="#/setup" href="#/setup">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="rocket"></i></span>
+                    <span class="nav-label">Setup</span>
+                </a>
+                <a class="nav-item" data-route="#/pricing" href="#/pricing">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="credit-card"></i></span>
+                    <span class="nav-label">Pricing</span>
+                </a>
+                <div class="nav-separator" role="separator"></div>
+                <a class="nav-item" data-route="#/config" href="#/config" data-admin-only="true">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="settings-2"></i></span>
+                    <span class="nav-label">Config</span>
+                </a>
+                <a class="nav-item" data-route="#/health" href="#/health">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="heart-pulse"></i></span>
+                    <span class="nav-label">Health</span>
+                </a>
+                <a class="nav-item" data-route="#/settings" href="#/settings">
+                    <span class="nav-icon" aria-hidden="true"><i data-lucide="user-cog"></i></span>
+                    <span class="nav-label">Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-usage" id="sidebar-usage"></div>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-upgrade" id="sidebar-upgrade">
+                    <div class="upgrade-header">
+                        <i data-lucide="lock" style="width:14px;height:14px"></i>
+                        <span>Unlock Pro</span>
+                    </div>
+                    <p class="upgrade-desc">Unlimited scans, CSV exports &amp; API access.</p>
+                    <a href="#/pricing" class="btn btn-primary upgrade-btn-sidebar">Upgrade Now</a>
+                </div>
+                <div class="sidebar-user-row">
+                    <div class="sidebar-user">
+                        <span class="user-avatar" aria-hidden="true">...</span>
+                        <div class="user-info">
+                            <span class="user-name">Loading...</span>
+                            <span class="user-email" id="sidebar-user-email"></span>
+                        </div>
+                    </div>
+                    <button class="btn-signout" id="sign-out" type="button" aria-label="Sign out">
+                        <i data-lucide="log-out" style="width:16px;height:16px"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" role="main">
+            <header class="top-bar" role="banner">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+                    <i data-lucide="menu" style="width:24px;height:24px"></i>
+                </button>
+                <div class="search-input" role="search">
+                    <span class="search-icon" aria-hidden="true">
+                        <i data-lucide="search" style="width:14px;height:14px"></i>
+                    </span>
+                    <label for="global-search" class="sr-only">Search</label>
+                    <input type="search" id="global-search" placeholder="Search commands, incidents, IPs... ( / )" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="top-bar-right">
+                    <div class="system-live-badge">
+                        <span class="live-dot"></span>
+                        <span>System Live</span>
+                    </div>
+                    <div class="top-bar-actions" id="nav-export-container"></div>
+                </div>
+            </header>
+            <div id="security-disabled-banner" class="security-disabled-banner" role="alert" aria-live="assertive" style="display:none"></div>
+            <div id="page-content" role="region" aria-live="polite"></div>
+            <footer class="legal-footer">
+                <div class="footer-left">
+                    <span>&copy; <span id="footer-year">2026</span> ShieldPilot Security</span>
+                    <a href="#/legal/terms">Terms</a>
+                    <a href="#/legal/privacy">Privacy</a>
+                    <a href="#/legal/impressum">Impressum</a>
+                </div>
+                <div class="footer-right">
+                    <span class="footer-status">
+                        <i data-lucide="circle-check" style="width:12px;height:12px;color:#22c55e"></i>
+                        API Connected
+                    </span>
+                    <span>Region: EU-Central-1</span>
+                </div>
+            </footer>
+        </main>
+
+    </div>
+
+    <div class="error-banner" id="error-banner" role="alert" aria-live="assertive" style="display:none">
+        <span id="error-banner-msg"></span>
+        <button class="error-dismiss" id="error-dismiss" type="button">&#x2715;</button>
+    </div>
+
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <script type="module" src="/static/js/components.js?v=12"></script>
+    <script type="module" src="/static/js/app.js?v=12"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { var y = document.getElementById('footer-year'); if (y) y.textContent = new Date().getFullYear(); });</script>
+
+</body>
+</html>

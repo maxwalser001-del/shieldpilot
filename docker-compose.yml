@@ -1,0 +1,71 @@
+# ============================================================
+# ShieldPilot — docker-compose.yml (Production)
+# ============================================================
+# Usage:
+#   docker compose up --build        # build and start
+#   docker compose up -d             # start detached
+#   docker compose down              # stop and remove
+#   docker compose logs -f app       # tail logs
+#
+# Environment variables (set in .env or shell):
+#   SHIELDPILOT_SECRET_KEY     — JWT signing key (auto-generated if empty)
+#   SHIELDPILOT_SUPER_ADMIN_*  — Super-admin credentials
+#   GOOGLE_CLIENT_ID           — Google OAuth client ID
+#   GOOGLE_CLIENT_SECRET       — Google OAuth client secret
+#   STRIPE_SECRET_KEY          — Stripe billing key
+#   SENTINEL_ML_MODE           — ML classifier mode (off/shadow/enforce)
+# ============================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shieldpilot
+    restart: unless-stopped
+    ports:
+      - "${SHIELDPILOT_PORT:-8420}:8420"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - SENTINEL_DB=/app/data/sentinel.db
+      - SENTINEL_CONFIG=/app/sentinel.yaml
+    volumes:
+      # Persist SQLite database across container restarts
+      - shieldpilot-data:/app/data
+      # Persist backups
+      - shieldpilot-backups:/app/backups
+      # Mount sentinel.yaml so config changes don't require a rebuild
+      - ./sentinel.yaml:/app/sentinel.yaml:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; r = httpx.get('http://localhost:8420/api/health'); exit(0 if r.status_code == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - shieldpilot-net
+
+volumes:
+  shieldpilot-data:
+    driver: local
+  shieldpilot-backups:
+    driver: local
+
+networks:
+  shieldpilot-net:
+    driver: bridge

@@ -1,0 +1,49 @@
+{
+  "name": "shieldpilot-security",
+  "displayName": "ShieldPilot Security Guard",
+  "version": "1.0.0",
+  "description": "Real-time security monitoring for AI coding agents. Analyzes every tool call for injection attacks, credential exfiltration, and destructive operations.",
+  "author": "MaxtheCreator",
+  "license": "MIT",
+  "homepage": "https://github.com/maxwalser001-del/Cyber-Security-",
+  "repository": "https://github.com/maxwalser001-del/Cyber-Security-",
+  "hooks": {
+    "preToolExecution": "./index.js",
+    "preToolExecution:bash": "./hook.sh"
+  },
+  "eventTypes": [
+    "preToolExecution",
+    "postToolExecution"
+  ],
+  "engines": {
+    "openclaw": ">=0.1.0"
+  },
+  "keywords": ["security", "injection-detection", "risk-analysis", "agent-safety"],
+  "categories": ["Security", "DevOps"],
+  "icon": "shield-icon.png",
+  "activationEvents": ["onToolExecution"],
+  "configuration": {
+    "shieldpilot.pythonPath": {
+      "type": "string",
+      "default": "python3",
+      "description": "Path to Python 3 interpreter"
+    },
+    "shieldpilot.configPath": {
+      "type": "string",
+      "default": "sentinel.yaml",
+      "description": "Path to ShieldPilot configuration file"
+    },
+    "shieldpilot.mode": {
+      "type": "string",
+      "enum": ["enforce", "audit", "disabled"],
+      "default": "enforce",
+      "description": "Security enforcement mode"
+    },
+    "shieldpilot.hookType": {
+      "type": "string",
+      "enum": ["node", "bash"],
+      "default": "node",
+      "description": "Hook implementation: node (index.js) or bash (hook.sh)"
+    }
+  }
+}

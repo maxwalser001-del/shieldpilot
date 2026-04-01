@@ -1,0 +1,24 @@
+name: "Development"
+version: "1"
+description: "Relaxed rules for development — warn instead of deny for most operations"
+rules:
+  - action: deny
+    tool: bash
+    pattern: "rm\\s+-rf\\s+/(?!tmp|var/tmp)"
+    severity: critical
+    reason: "Recursive deletion of system root"
+  - action: warn
+    tool: bash
+    pattern: "sudo\\s+rm\\s+-rf|sudo\\s+dd"
+    severity: high
+    reason: "Potentially destructive privileged operation"
+  - action: warn
+    tool: bash
+    pattern: "curl.*\\|\\s*bash|wget.*\\|\\s*sh"
+    severity: high
+    reason: "Pipe-to-shell pattern (supply chain risk)"
+  - action: allow
+    tool: bash
+    pattern: ".*"
+    severity: low
+    reason: "Development mode — most operations allowed"

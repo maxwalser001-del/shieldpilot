@@ -1,0 +1,59 @@
+
+╭────────────────────────────────────────────╮
+│  ShieldPilot  Supply Chain Security Audit  │
+╰────────────────────────────────────────────╯
+
+  Target:  /Users/maxwalser/Desktop/Cyber Security 
+Claude/.claude/worktrees/quizzical-poitras/scripts/demo/requirements-demo.txt
+  Checks:  typosquatting · unpinned versions · abandoned packages · dependency confusion
+
+
+
+───────────────────────────────────── Typosquatting Detections ─────────────────────────────────────
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ Package in requirements.txt         ┃ Looks like               ┃    Confidence    ┃    Action    ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ colourama                           │ colorama                 │       99%        │    BLOCK     │
+│ djano                               │ django                   │       97%        │    BLOCK     │
+│ reqeusts                            │ requests                 │       98%        │    BLOCK     │
+│ urllib4                             │ urllib3                  │       94%        │    BLOCK     │
+│ nump0                               │ numpy                    │       96%        │    BLOCK     │
+│ panadas                             │ pandas                   │       95%        │    BLOCK     │
+│ boto                                │ boto3                    │       88%        │     WARN     │
+│ crypt0graphy                        │ cryptography             │       93%        │    BLOCK     │
+└─────────────────────────────────────┴──────────────────────────┴──────────────────┴──────────────┘
+
+──────────────────────────────────── Unpinned & Risky Packages ─────────────────────────────────────
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Package                     ┃ Issue                                                 ┃    Risk    ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ pycrypto                    │ Abandoned 2013 · 7 known CVEs (CVE-2018-6594...)      │  CRITICAL  │
+│ django (unpinned)           │ No version pin — supply chain substitution risk       │    HIGH    │
+│ flask (unpinned)            │ No version pin — supply chain substitution risk       │    HIGH    │
+│ fastapi (unpinned)          │ No version pin — supply chain substitution risk       │    HIGH    │
+│ requests (unpinned)         │ No version pin — supply chain substitution risk       │    HIGH    │
+│ internal-auth-utils         │ Not on PyPI — dependency confusion attack surface     │  CRITICAL  │
+│ company-shared-models       │ Not on PyPI — dependency confusion attack surface     │  CRITICAL  │
+│ acme-corp-utils             │ Not on PyPI — dependency confusion attack surface     │  CRITICAL  │
+└─────────────────────────────┴───────────────────────────────────────────────────────┴────────────┘
+
+╭───────────────────────────────────────── Audit Summary ──────────────────────────────────────────╮
+│  Packages scanned:               27                                                              │
+│  Typosquatting detections:       8                                                               │
+│  Dependency confusion risks:     3                                                               │
+│  Unpinned versions:              5                                                               │
+│  Abandoned packages:             1 (pycrypto)                                                    │
+│  Packages blocked:               7                                                               │
+│  Packages warned:                1                                                               │
+│  Safe to install:                12                                                              │
+│  Overall risk:                   CRITICAL — do not install                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+  ✗  7 packages BLOCKED — probable malicious packages detected
+  ⚠  1 package WARNED — verify before installing
+  Recommendation: Run pip-audit and pin all versions with pip-compile
+
+  Run sentinel dashboard to view full report → http://localhost:8420
+
