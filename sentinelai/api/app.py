@@ -5,6 +5,7 @@ Creates the app, includes routes, sets up CORS, and mounts static files.
 
 from __future__ import annotations
 
+import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -121,7 +122,12 @@ def create_app() -> FastAPI:
 
     # CORS — restrict to specific origins for security
     # In production, set SHIELDPILOT_CORS_ORIGINS env var to comma-separated list
-    cors_origins = os.environ.get("SHIELDPILOT_CORS_ORIGINS", "http://localhost:8420,http://127.0.0.1:8420,http://localhost:8000,http://127.0.0.1:8000").split(",")
+    from sentinelai.api.deps import get_config as _get_cfg
+    _cfg = _get_cfg()
+    _default_cors = "http://localhost:8420,http://127.0.0.1:8420" if _cfg.auth.local_first else ""
+    cors_origins = [o for o in os.environ.get("SHIELDPILOT_CORS_ORIGINS", _default_cors).split(",") if o]
+    if not cors_origins:
+        logging.getLogger(__name__).info("No CORS origins configured — cross-origin requests will be rejected")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cors_origins,

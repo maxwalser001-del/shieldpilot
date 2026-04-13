@@ -88,16 +88,13 @@ class AuthService:
                     # Config contains a bcrypt hash — use bcrypt.verify
                     _pw_ok = verify_password(password, config_pw)
                 else:
-                    # Plaintext fallback — constant-time compare, log warning
-                    _pw_ok = hmac.compare_digest(
-                        password.encode(),
-                        config_pw.encode(),
+                    # Plaintext passwords are rejected in production
+                    _logger.error(
+                        "Super-admin password in config is not a bcrypt hash. "
+                        "Generate one with: python3 -c \"from passlib.hash import bcrypt; print(bcrypt.hash('YOUR_PASSWORD'))\" "
+                        "and set SHIELDPILOT_SUPER_ADMIN_PASSWORD to the hash."
                     )
-                    if _pw_ok:
-                        _logger.warning(
-                            "Super-admin authenticated via plaintext password comparison. "
-                            "Set SHIELDPILOT_SUPER_ADMIN_PASSWORD to a bcrypt hash for production security."
-                        )
+                    _pw_ok = False
 
             if _pw_ok:
                 token_data = TokenData(
@@ -396,26 +393,34 @@ class AuthService:
 
         token_hash = hashlib.sha256(token.encode()).hexdigest()
 
-        verification = (
-            self.session.query(EmailVerificationToken)
-            .filter(
+        # Atomic UPDATE to prevent token reuse (same pattern as password reset)
+        from sqlalchemy import update as sa_update
+
+        result = self.session.execute(
+            sa_update(EmailVerificationToken)
+            .where(
                 EmailVerificationToken.token_hash == token_hash,
                 EmailVerificationToken.used == False,
                 EmailVerificationToken.expires_at > datetime.now(timezone.utc),
             )
+            .values(used=True)
+        )
+        self.session.flush()
+
+        if result.rowcount == 0:
+            return "/login?verify_error=true"
+
+        verification = (
+            self.session.query(EmailVerificationToken)
+            .filter(EmailVerificationToken.token_hash == token_hash)
             .first()
         )
-
-        if not verification:
-            return "/login?verify_error=true"
 
         # Update user
         user = self.session.get(User, verification.user_id)
         if user:
             user.email_verified = True
 
-        # Mark token as used
-        verification.used = True
         self.session.commit()
 
         return "/login?verified=true"

@@ -266,8 +266,8 @@ class BillingService:
             from sentinelai.api.email import EmailService
             email_svc = EmailService(self.config.auth)
             email_svc.send_tier_upgrade_notification(user.email, new_tier, user.username)
-        except Exception:
-            pass
+        except Exception as exc:
+            _logger.warning("Failed to send tier upgrade email to %s: %s", user.email, exc)
 
     def _handle_subscription_updated(self, subscription_obj: dict) -> None:
         """Handle subscription changes (plan change, renewal, etc.)."""
@@ -319,8 +319,8 @@ class BillingService:
                 email_svc.send_tier_downgrade_notification(user.email, old_tier, "payment_failed", user.username)
             elif sub_status == "past_due":
                 email_svc.send_payment_failed_notification(user.email, user.tier, user.username)
-        except Exception:
-            pass
+        except Exception as exc:
+            _logger.warning("Failed to send subscription update email to %s: %s", user.email, exc)
 
     def _handle_subscription_deleted(self, subscription_obj: dict) -> None:
         """Handle subscription cancellation -- downgrade to free."""
@@ -346,8 +346,8 @@ class BillingService:
             from sentinelai.api.email import EmailService
             email_svc = EmailService(self.config.auth)
             email_svc.send_tier_downgrade_notification(user.email, old_tier, "canceled", user.username)
-        except Exception:
-            pass
+        except Exception as exc:
+            _logger.warning("Failed to send tier downgrade email to %s: %s", user.email, exc)
 
     def _handle_invoice_paid(self, invoice_obj: dict) -> None:
         """Handle successful invoice payment -- confirm active status."""
@@ -376,8 +376,8 @@ class BillingService:
                 from sentinelai.api.email import EmailService
                 email_svc = EmailService(self.config.auth)
                 email_svc.send_tier_upgrade_notification(user.email, user.tier, user.username)
-            except Exception:
-                pass
+            except Exception as exc:
+                _logger.warning("Failed to send invoice paid email to %s: %s", user.email, exc)
 
         self.session.commit()
 
@@ -400,8 +400,8 @@ class BillingService:
             from sentinelai.api.email import EmailService
             email_svc = EmailService(self.config.auth)
             email_svc.send_payment_failed_notification(user.email, user.tier, user.username)
-        except Exception:
-            pass
+        except Exception as exc:
+            _logger.warning("Failed to send payment failed email to %s: %s", user.email, exc)
 
     def create_booster_checkout(self, user: TokenData) -> dict:
         """Create a Stripe one-time payment session for a Command Booster."""

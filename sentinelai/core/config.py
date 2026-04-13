@@ -74,7 +74,7 @@ class AuthConfig(BaseModel):
     access_token_expire_minutes: int = 1440
     default_admin_user: str = "admin"
     default_admin_password: str = ""  # Optional: set via SHIELDPILOT_ADMIN_PASSWORD env var
-    local_first: bool = True  # Skip auth for localhost connections (local = trusted)
+    local_first: bool = False  # Dev only: skip auth for localhost. Set to true in sentinel.yaml for local dev.
 
     # Super-admin with unlimited access (email required, password via env var)
     super_admin_email: str = ""  # Set via SHIELDPILOT_SUPER_ADMIN_EMAIL env var

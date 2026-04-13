@@ -40,6 +40,12 @@ class RuleCreate(BaseModel):
     @field_validator("pattern")
     @classmethod
     def validate_pattern(cls, v: str) -> str:
+        if len(v) > 500:
+            raise ValueError("Pattern too long (max 500 characters)")
+        # Reject patterns with nested quantifiers that cause catastrophic backtracking (ReDoS)
+        _redos_check = re.compile(r'\([^)]*[+*][^)]*\)[+*]')
+        if _redos_check.search(v):
+            raise ValueError("Pattern contains nested quantifiers — potential ReDoS risk")
         try:
             re.compile(v)
         except re.error as e:

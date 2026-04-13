@@ -109,13 +109,15 @@ def get_current_user(
     # Check API key first
     api_key = request.headers.get("X-API-Key")
     if api_key:
+        import hmac as _hmac
         key_hash = hashlib.sha256(api_key.encode()).hexdigest()
         from sentinelai.logger.database import User
         db_user = session.query(User).filter(
             User.api_key_hash == key_hash,
             User.is_active == True,
         ).first()
-        if db_user:
+        # Constant-time verification to prevent timing attacks
+        if db_user and _hmac.compare_digest(key_hash, db_user.api_key_hash):
             return TokenData(
                 username=db_user.username,
                 email=db_user.email,
@@ -584,8 +586,9 @@ def _check_command_limit_internal(
                         booster.credits_remaining -= 1
                         session.commit()
                         return  # Booster credit consumed — allow command
-                except Exception:
-                    pass  # Table may not exist yet
+                except Exception as exc:
+                    logging.getLogger(__name__).error("Booster credit deduction failed: %s", exc)
+                    # Fail closed: don't grant free commands if table is broken
 
             from sentinelai.core.models import format_limit_exceeded
             raise HTTPException(
