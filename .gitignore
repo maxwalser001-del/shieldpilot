@@ -116,5 +116,13 @@ candidate_set.jsonl
 
 # Claude Code project files
 .claude/settings.json
+.claude/agents/
+.claude/skills/
 infosite/
 .claude/worktrees/
+
+# Internal / private — NEVER push to public repo
+launch/
+features/
+memory/
+sentinel.yaml
