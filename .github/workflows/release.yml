@@ -123,7 +123,7 @@ jobs:
           ### Install
 
           \`\`\`bash
-          pip install sentinelai==${{ steps.version.outputs.VERSION }}
+          pip install shieldpilot==${{ steps.version.outputs.VERSION }}
           \`\`\`
 
           Or with Docker:

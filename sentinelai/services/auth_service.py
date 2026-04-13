@@ -168,8 +168,8 @@ class AuthService:
                             user.stripe_subscription_id = None
                             self.session.commit()
                             token_data.tier = "free"
-                except Exception:
-                    pass  # Non-blocking: if Stripe unreachable, use cached DB state
+                except Exception as exc:
+                    _logger.warning("Stripe tier sync failed for user %s: %s (using cached tier)", user.username, exc)
 
             return create_access_token(token_data, self.config.auth)
 
@@ -349,25 +349,34 @@ class AuthService:
 
         token_hash = hashlib.sha256(token.encode()).hexdigest()
 
-        # SQLite uses serialized transactions -- no need for SELECT ... FOR UPDATE
-        reset_token = (
-            self.session.query(PasswordResetToken)
-            .filter(
+        # Atomic UPDATE to prevent race conditions: mark token as used in a
+        # single statement and check rowcount.  If two concurrent requests use
+        # the same token, only one UPDATE will match (used==False).
+        from sqlalchemy import update
+
+        result = self.session.execute(
+            update(PasswordResetToken)
+            .where(
                 PasswordResetToken.token_hash == token_hash,
                 PasswordResetToken.used == False,
                 PasswordResetToken.expires_at > datetime.now(timezone.utc),
             )
-            .first()
+            .values(used=True)
         )
+        self.session.flush()
 
-        if not reset_token:
+        if result.rowcount == 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={"error": "Invalid or expired reset token"},
             )
 
-        # Mark token as used immediately to prevent race conditions
-        reset_token.used = True
+        # Fetch the token to get user_id
+        reset_token = (
+            self.session.query(PasswordResetToken)
+            .filter(PasswordResetToken.token_hash == token_hash)
+            .first()
+        )
 
         # Update user password
         user = self.session.get(User, reset_token.user_id)

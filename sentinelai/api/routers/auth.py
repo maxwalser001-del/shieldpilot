@@ -21,6 +21,7 @@ from sentinelai.api.deps import (
 )
 from sentinelai.api.routers._shared import (
     _login_limiter,
+    _password_reset_confirm_limiter,
     _password_reset_limiter,
     _rate_limit_logger,
     _registration_limiter,
@@ -178,10 +179,21 @@ def request_password_reset(
 )
 def confirm_password_reset(
     request: PasswordResetConfirm,
+    http_request: Request,
     config: SentinelConfig = Depends(get_config),
     session: Session = Depends(get_db_session),
 ):
     """Reset password using token."""
+    client_ip = http_request.client.host if http_request.client else "unknown"
+    if _password_reset_confirm_limiter.is_blocked(client_ip):
+        retry_after = _password_reset_confirm_limiter.get_retry_after(client_ip)
+        _rate_limit_logger.warning(f"Password reset confirm rate limit exceeded for {client_ip}")
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={"error": "Too many reset attempts", "message": f"Try again in {retry_after // 60} minutes."},
+            headers={"Retry-After": str(retry_after)},
+        )
+    _password_reset_confirm_limiter.record_attempt(client_ip)
     service = AuthService(session, config)
     return service.confirm_password_reset(request.token, request.new_password)
 

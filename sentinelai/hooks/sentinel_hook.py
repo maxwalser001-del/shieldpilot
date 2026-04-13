@@ -297,12 +297,16 @@ def _format_signals(signals, max_count: int = 3) -> str:
 
 
 def _check_protected_path(file_path: str, config) -> bool:
-    """Return True if file_path falls under a protected path."""
+    """Return True if file_path falls under a protected path.
+
+    Fails closed: if the check itself errors, treat the path as protected.
+    """
     try:
         from sentinelai.core.path_utils import is_path_under
         return any(is_path_under(file_path, pp) for pp in config.protected_paths)
-    except Exception:
-        return False
+    except Exception as exc:
+        print(f"WARNING: Protected path check failed ({exc}), treating as protected (fail-closed)", file=sys.stderr)
+        return True
 
 
 def _load_sentinel():
@@ -370,7 +374,8 @@ def _check_usage_limit(config) -> tuple[bool, str]:
             return True, msg
 
         return False, ""
-    except Exception:
+    except Exception as exc:
+        print(f"WARNING: Usage limit check failed ({exc}), allowing (fail-open)", file=sys.stderr)
         return False, ""
 
 
@@ -516,7 +521,8 @@ def _check_injection_rate(config, command: str = "") -> tuple[bool, str]:
                 f"({count} in last 60s). Please wait before retrying."
             )
         return False, ""
-    except Exception:
+    except Exception as exc:
+        print(f"WARNING: Injection rate limit check failed ({exc}), allowing (fail-open)", file=sys.stderr)
         return False, ""
 
 
@@ -593,14 +599,16 @@ def main() -> None:
         tool_name = cmd.tool_name
         tool_input = cmd.tool_input
         cwd = cmd.cwd or os.getcwd()
-    except Exception:
+    except Exception as exc:
+        print(f"WARNING: Adapter parse failed ({exc}), falling back to direct JSON", file=sys.stderr)
         # Fallback: direct JSON parsing (backward compat if adapter import fails)
         try:
             data = json.loads(raw)
             tool_name = data.get("tool_name", "")
             tool_input = data.get("tool_input", {})
             cwd = data.get("cwd", os.getcwd())
-        except (json.JSONDecodeError, Exception):
+        except (json.JSONDecodeError, Exception) as exc2:
+            print(f"WARNING: JSON fallback parse also failed ({exc2}), allowing (fail-open)", file=sys.stderr)
             _allow()
 
     # ── Non-Bash tools: fast path ──────────────────────────────
@@ -630,8 +638,9 @@ def main() -> None:
                     )
                 else:
                     _allow()
-            except Exception:
-                _allow()
+            except Exception as exc:
+                print(f"WARNING: Write protection check failed ({exc}), blocking (fail-closed)", file=sys.stderr)
+                _deny(f"ShieldPilot: Write protection check failed, blocking for safety")
         else:
             _allow()
 

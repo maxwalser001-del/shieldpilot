@@ -142,6 +142,7 @@ class RateLimiter:
 # Rate limiters for auth endpoints
 _login_limiter = RateLimiter(name="login", max_attempts=5, window_seconds=60)
 _password_reset_limiter = RateLimiter(name="password_reset", max_attempts=3, window_seconds=3600)
+_password_reset_confirm_limiter = RateLimiter(name="password_reset_confirm", max_attempts=5, window_seconds=3600)
 _registration_limiter = RateLimiter(name="registration", max_attempts=5, window_seconds=3600)
 
 

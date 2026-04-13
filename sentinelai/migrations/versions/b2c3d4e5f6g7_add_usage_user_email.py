@@ -22,6 +22,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def _column_exists(table: str, column: str) -> bool:
     """Check if a column already exists in a table."""
+    import re
+    assert re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", table), f"Invalid table name: {table}"
     conn = op.get_bind()
     result = conn.execute(sa.text(f"PRAGMA table_info({table})"))
     return any(row[1] == column for row in result.fetchall())

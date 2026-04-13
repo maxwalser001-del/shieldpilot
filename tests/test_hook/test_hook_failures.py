@@ -59,13 +59,13 @@ class TestAnalyzerFailure:
         # DestructiveFSAnalyzer should still produce signals
         assert len(result.signals) > 0
 
-    def test_all_analyzers_crash_returns_zero(self, test_config, mock_context):
-        """If ALL analyzers crash, score should be 0 (no signals)."""
+    def test_all_analyzers_crash_adds_error_signal(self, test_config, mock_context):
+        """If ALL analyzers crash, error signals should be added (risk may be underestimated)."""
         engine = RiskEngine(test_config, analyzers=[CrashingAnalyzer()])
         result = engine.assess("any command", mock_context)
-        assert result.final_score == 0
-        assert result.action == Action.ALLOW
-        assert len(result.signals) == 0
+        assert result.final_score > 0, "Failed analyzers should contribute a non-zero score"
+        assert len(result.signals) == 1
+        assert "failed" in result.signals[0].description.lower()
 
     def test_multiple_crashing_analyzers(self, test_config, mock_context):
         """Multiple crashing analyzers should all be caught gracefully."""
@@ -74,8 +74,8 @@ class TestAnalyzerFailure:
             analyzers=[CrashingAnalyzer(), CrashingAnalyzer(), CrashingAnalyzer()],
         )
         result = engine.assess("any command", mock_context)
-        assert result.final_score == 0
-        assert result.action == Action.ALLOW
+        assert result.final_score > 0, "Multiple failed analyzers should raise the score"
+        assert len(result.signals) == 3, "Each crashing analyzer should produce an error signal"
 
 
 # ---------------------------------------------------------------------------

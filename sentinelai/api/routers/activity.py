@@ -31,7 +31,14 @@ _INC_SELECT = """
     SELECT 'INC'  AS type, timestamp, '#' || CAST(id AS TEXT) || ' ' || SUBSTR(title, 1, 50) AS summary,
            NULL AS score, NULL AS action, id,
            severity, NULL AS blocked
-    FROM incidents {severity_filter} ORDER BY id DESC LIMIT :lim
+    FROM incidents ORDER BY id DESC LIMIT :lim
+"""
+
+_INC_SELECT_SEVERITY = """
+    SELECT 'INC'  AS type, timestamp, '#' || CAST(id AS TEXT) || ' ' || SUBSTR(title, 1, 50) AS summary,
+           NULL AS score, NULL AS action, id,
+           severity, NULL AS blocked
+    FROM incidents WHERE severity = :severity ORDER BY id DESC LIMIT :lim
 """
 
 _NET_SELECT = """
@@ -82,17 +89,17 @@ def _build_union_query(
         type_keys = list(_TYPE_SELECTS.keys())
 
     # Build severity filter for INC sub-select
-    severity_filter = ""
-    if severity and "INC" in type_keys:
-        severity_filter = "WHERE severity = :severity"
+    use_severity = bool(severity and "INC" in type_keys)
+    if use_severity:
         params["severity"] = severity
 
-    # Assemble sub-selects
+    # Assemble sub-selects (no string formatting — templates are static)
     sub_selects = []
     for key in type_keys:
-        tpl = _TYPE_SELECTS[key]
-        if key == "INC":
-            tpl = tpl.format(severity_filter=severity_filter)
+        if key == "INC" and use_severity:
+            tpl = _INC_SELECT_SEVERITY
+        else:
+            tpl = _TYPE_SELECTS[key]
         sub_selects.append(f"SELECT * FROM ({tpl})")
 
     union_body = "\nUNION ALL\n".join(sub_selects)

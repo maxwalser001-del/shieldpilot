@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -595,13 +596,18 @@ def _ensure_indexes(engine) -> None:
         ("ix_incidents_resolved_ts", "incidents", "resolved, timestamp"),
     ]
 
+    # Validate index definitions (all hardcoded, but guard against injection)
+    _valid_ident = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_, ]*$")
     with engine.connect() as conn:
         for name, table, columns in new_indexes:
             if name not in existing:
+                assert _valid_ident.match(name), f"Invalid index name: {name}"
+                assert _valid_ident.match(table), f"Invalid table name: {table}"
+                assert _valid_ident.match(columns), f"Invalid column spec: {columns}"
                 try:
                     conn.execute(text(f"CREATE INDEX {name} ON {table} ({columns})"))
-                except Exception:
-                    pass  # Table may not exist yet on first run
+                except Exception as exc:
+                    logging.getLogger(__name__).warning("Index %s creation failed: %s", name, exc)
         conn.commit()
 
 

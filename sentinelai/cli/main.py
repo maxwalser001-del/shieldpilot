@@ -774,7 +774,7 @@ def init(
                 "algorithm": "HS256",
                 "access_token_expire_minutes": 1440,
                 "default_admin_user": "admin",
-                "default_admin_password": "sentinel-admin-changeme",
+                "default_admin_password": os.urandom(12).hex(),
             },
             "billing": {"enabled": False, "tier": "free"},
         }
@@ -838,11 +838,10 @@ def dashboard(
     if host == "0.0.0.0":
         console.print(f"  [label]Network:[/label]  [value]http://{local_ip}:{port}[/value]")
     console.print()
-    console.print(f"  [label]Default credentials:[/label]")
-    console.print(f"    Username: [value]{config.auth.default_admin_user}[/value]")
-    console.print(f"    Password: [value]{config.auth.default_admin_password}[/value]")
+    console.print(f"  [label]Default admin user:[/label] [value]{config.auth.default_admin_user}[/value]")
+    console.print(f"  [label]Admin password:[/label]    [value](see sentinel.yaml or set SHIELDPILOT_ADMIN_PASSWORD env var)[/value]")
     console.print()
-    console.print("  [warn]Change the default password after first login.[/warn]")
+    console.print("  [warn]Set a strong admin password via SHIELDPILOT_ADMIN_PASSWORD env var.[/warn]")
     console.print("  [muted]Press Ctrl+C to stop.[/muted]")
     console.print()
 

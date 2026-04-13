@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from sentinelai.core.config import SentinelConfig
-from sentinelai.core.constants import Action, RiskLevel, score_to_risk_level
+from sentinelai.core.constants import Action, RiskCategory, RiskLevel, score_to_risk_level
 from sentinelai.core.models import RiskAssessment, RiskSignal
 from sentinelai.engine.base import AnalysisContext, BaseAnalyzer
 from sentinelai.engine.llm_evaluator import LLMEvaluator
@@ -105,7 +105,15 @@ class RiskEngine:
                 signals = analyzer.analyze(command, context)
                 all_signals.extend(signals)
             except Exception as e:
-                logger.warning(f"Analyzer {analyzer.name} failed: {e}")
+                logger.error(f"Analyzer {analyzer.name} failed: {e}")
+                all_signals.append(RiskSignal(
+                    category=RiskCategory.INJECTION,
+                    score=30,
+                    weight=0.5,
+                    description=f"Analyzer {analyzer.name} failed — risk may be underestimated",
+                    evidence=str(e),
+                    analyzer=analyzer.name,
+                ))
 
         # Step 4: Compute composite score
         raw_score = self._compute_score(all_signals)

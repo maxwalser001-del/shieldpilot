@@ -41,7 +41,7 @@ class EmailService:
         """
         if not self.is_configured():
             # SMTP not configured - log and return False
-            _logger.warning("SMTP not configured. Reset token for %s: %s", to_email, reset_token)
+            _logger.warning("SMTP not configured. Password reset requested for %s (token not logged for security)", to_email)
             return False
 
         reset_url = f"{self.config.password_reset_url}{reset_token}"
@@ -122,7 +122,7 @@ The ShieldPilot Team
             True if email was sent successfully, False otherwise.
         """
         if not self.is_configured():
-            _logger.warning("SMTP not configured. Verification token for %s: %s", to_email, verification_token)
+            _logger.warning("SMTP not configured. Email verification requested for %s (token not logged for security)", to_email)
             return False
 
         verify_url = f"{base_url}/api/auth/verify-email?token={verification_token}"
