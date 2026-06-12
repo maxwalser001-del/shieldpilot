@@ -39,6 +39,27 @@ class WhitelistConfig(BaseModel):
     )
 
 
+class InjectionRateLimitConfig(BaseModel):
+    """Best-of-N injection rate limiter (a SECONDARY defense to the content analyzers).
+
+    Trips only when a single payload (same content_hash) repeats >= ``threshold``
+    times within ``window_seconds`` — i.e. an actual retried attack. Reading diverse
+    content that merely *mentions* injection (security docs, lessons, even this config)
+    yields distinct hashes and never trips. The per-command content analyzers remain
+    the primary defense and are unaffected by this setting.
+
+    action:
+      block (default) → deny the command when the limiter trips (team / production-safe)
+      warn            → allow + emit a stderr warning so work continues, while the
+                        content analyzers still run. For trusted single-operator local
+                        installs (the operator reading their own security notes is not
+                        an attacker). Mirrors the Tier-1 vs Tier-2 trust split.
+    """
+    action: str = "block"  # block | warn
+    threshold: int = 5
+    window_seconds: int = 60
+
+
 class BlacklistConfig(BaseModel):
     """Blacklisted commands and domains."""
     commands: List[str] = Field(default_factory=list)
@@ -203,6 +224,9 @@ class SentinelConfig(BaseModel):
     risk_thresholds: RiskThresholds = Field(default_factory=RiskThresholds)
     llm: LLMConfig = Field(default_factory=LLMConfig)
     whitelist: WhitelistConfig = Field(default_factory=WhitelistConfig)
+    injection_rate_limit: InjectionRateLimitConfig = Field(
+        default_factory=InjectionRateLimitConfig
+    )
     blacklist: BlacklistConfig = Field(default_factory=BlacklistConfig)
     protected_paths: List[str] = Field(default_factory=list)
     secrets_patterns: List[str] = Field(default_factory=list)

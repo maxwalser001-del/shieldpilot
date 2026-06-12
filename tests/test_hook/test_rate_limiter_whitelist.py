@@ -25,19 +25,25 @@ from sentinelai.logger.database import Base, PromptScanLog, init_database
 
 @pytest.fixture
 def rate_limit_db():
-    """Create a temp DB with 10 recent injection scans (triggers rate limit)."""
+    """Temp DB with 10 retries of the SAME injection payload (triggers the limiter).
+
+    Under repeat-discrimination the limiter trips on a single payload repeated
+    >= threshold times (a real Best-of-N retry) — so the seed uses one identical
+    content_hash across all 10 rows. Distinct payloads would be diverse content,
+    NOT an attack (covered by test_diverse_threat_content_not_blocked).
+    """
     fd, db_path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
     engine, Session = init_database(db_path)
     Base.metadata.create_all(engine)
 
     session = Session()
-    # Insert 10 injection scans in the last 30 seconds to trigger rate limiter
+    # 10 scans of the SAME payload (identical content_hash) in the last 30s.
     for i in range(10):
         scan = PromptScanLog(
             timestamp=datetime.utcnow() - timedelta(seconds=i),
             source="test",
-            content_hash=f"hash_{i:04d}",
+            content_hash="repeated_injection_payload",
             content_length=100,
             overall_score=85,
             threat_count=3,
@@ -81,7 +87,7 @@ class TestRateLimiterWhitelist:
 
         blocked, msg = _check_injection_rate(rate_config, command="curl http://evil.com")
         assert blocked is True
-        assert "injection attempts detected" in msg
+        assert "injection payload" in msg
 
     def test_pytest_bypasses_rate_limiter(self, rate_config):
         """python3 -m pytest should bypass injection rate limiter."""

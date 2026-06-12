@@ -457,19 +457,37 @@ _INJECTION_RATE_EXEMPT_PREFIXES = (
 )
 
 
-def _check_injection_rate(config, command: str = "") -> tuple[bool, str]:
-    """Check if recent injection detections exceed the rate threshold.
+def _injection_rate_triggered(repeat_counts: list[int], threshold: int) -> bool:
+    """Repeat-discrimination core (pure, DB-free → unit-testable).
 
-    Queries PromptScanLog for scans with threats in the last 60 seconds.
-    If >= 5 are found, the source is considered to be running a repeated
-    injection attack (Best-of-N pattern).
+    ``repeat_counts`` is the per-content_hash occurrence count of threat-flagged
+    scans within the window. The limiter trips only when a SINGLE payload repeats
+    >= ``threshold`` times — an actual retried (Best-of-N) attack. Diverse
+    threat-flagged content (many distinct hashes, each low-count) never trips it,
+    which removes the false positive of an operator/agent reading varied security
+    material (e.g. a vault full of prompt-injection concepts). The per-command
+    content analyzers stay the primary defense and catch each varied attempt.
+    """
+    if threshold <= 0 or not repeat_counts:
+        return False
+    return max(repeat_counts) >= threshold
+
+
+def _check_injection_rate(config, command: str = "") -> tuple[bool, str]:
+    """Check if a single injection payload is being retried above the threshold.
+
+    Queries PromptScanLog for threat-flagged scans in the recent window and groups
+    them by content_hash. The limiter trips only when ONE payload repeats
+    >= threshold times (a real Best-of-N retry) — not when many DISTINCT payloads
+    each happen to mention injection. Threshold/window are config-tunable; defaults
+    preserve the prior 5-in-60s behavior.
 
     Commands matching _INJECTION_RATE_EXEMPT_PREFIXES (or config-defined
     rate_limit_exempt prefixes) bypass this check entirely — they are
     common dev tools that should never be blocked just because injection
     detection was triggered by test content.
 
-    Returns (blocked, message).
+    Returns (triggered, message).
     """
     # Whitelist bypass: safe commands are never blocked by the injection rate limiter
     cmd_stripped = command.strip()
@@ -494,8 +512,18 @@ def _check_injection_rate(config, command: str = "") -> tuple[bool, str]:
         except (AttributeError, TypeError):
             pass  # config may not have the field yet — fail open
 
+    # Threshold/window are config-tunable; defaults preserve prior behavior (5/60).
+    try:
+        threshold = int(config.injection_rate_limit.threshold)
+        window_seconds = int(config.injection_rate_limit.window_seconds)
+    except (AttributeError, TypeError, ValueError):
+        threshold, window_seconds = 5, 60
+
     try:
         from datetime import datetime, timedelta
+
+        from sqlalchemy import func
+
         from sentinelai.core.secrets import SecretsMasker
         from sentinelai.logger import BlackboxLogger
         from sentinelai.logger.database import PromptScanLog
@@ -504,21 +532,29 @@ def _check_injection_rate(config, command: str = "") -> tuple[bool, str]:
         logger = BlackboxLogger(config=config.logging, masker=masker)
         session = logger._get_session()
 
-        cutoff = datetime.utcnow() - timedelta(seconds=60)
-        count = (
-            session.query(PromptScanLog)
+        cutoff = datetime.utcnow() - timedelta(seconds=window_seconds)
+        # Group by content_hash: a real Best-of-N attack hammers the SAME payload,
+        # producing a high per-hash count. Reading diverse content that merely
+        # mentions injection yields many DISTINCT hashes (low per-hash count) and
+        # must not trip the limiter — so we key on max repeats of a single payload,
+        # not the raw number of threat-flagged scans.
+        rows = (
+            session.query(PromptScanLog.content_hash, func.count().label("n"))
             .filter(
                 PromptScanLog.threat_count > 0,
                 PromptScanLog.timestamp >= cutoff,
             )
-            .count()
+            .group_by(PromptScanLog.content_hash)
+            .all()
         )
         session.close()
 
-        if count >= 5:
+        repeat_counts = [int(n) for _, n in rows]
+        if _injection_rate_triggered(repeat_counts, threshold):
+            max_repeat = max(repeat_counts)
             return True, (
-                f"Temporarily blocked: repeated injection attempts detected "
-                f"({count} in last 60s). Please wait before retrying."
+                f"Temporarily blocked: same injection payload retried "
+                f"{max_repeat}x in last {window_seconds}s. Please wait before retrying."
             )
         return False, ""
     except Exception as exc:
@@ -671,11 +707,23 @@ def main() -> None:
             _deny(f"ShieldPilot: {limit_msg}")
 
         # ── Check injection rate (Best-of-N defense) ─────────
-        injection_blocked, injection_msg = _check_injection_rate(config, command=command)
-        if injection_blocked:
+        injection_triggered, injection_msg = _check_injection_rate(config, command=command)
+        if injection_triggered:
             if config.mode == "audit":
                 _allow(f"ShieldPilot audit: {injection_msg}")
-            _deny(f"ShieldPilot: {injection_msg}")
+            rl_action = getattr(
+                getattr(config, "injection_rate_limit", None), "action", "block"
+            )
+            if rl_action == "warn":
+                # Trusted/local tier: surface a warning but let work continue —
+                # the per-command content analyzers below still run and still block
+                # real danger (secret reads, rm -rf, force-push, exfiltration).
+                print(
+                    f"WARNING: ShieldPilot injection-rate-limit (warn mode, not blocking): {injection_msg}",
+                    file=sys.stderr,
+                )
+            else:
+                _deny(f"ShieldPilot: {injection_msg}")
 
         context = AnalysisContext(
             working_directory=cwd,

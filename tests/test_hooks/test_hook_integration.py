@@ -770,9 +770,14 @@ class TestCheckInjectionRate:
 
         mock_config = MagicMock()
         mock_config.secrets_patterns = []
+        mock_config.injection_rate_limit.threshold = 5
+        mock_config.injection_rate_limit.window_seconds = 60
 
         mock_session = MagicMock()
-        mock_session.query.return_value.filter.return_value.count.return_value = 7
+        # New semantics: GROUP BY content_hash → one payload retried 7x.
+        mock_session.query.return_value.filter.return_value.group_by.return_value.all.return_value = [
+            ("samehash", 7),
+        ]
 
         mock_logger = MagicMock()
         mock_logger._get_session.return_value = mock_session
@@ -781,7 +786,7 @@ class TestCheckInjectionRate:
              patch("sentinelai.core.secrets.SecretsMasker"):
             blocked, msg = _check_injection_rate(mock_config)
             assert blocked is True
-            assert "repeated injection" in msg.lower()
+            assert "injection payload" in msg.lower()
             assert "7" in msg
 
     def test_exactly_five_injections_blocks(self):
@@ -790,9 +795,14 @@ class TestCheckInjectionRate:
 
         mock_config = MagicMock()
         mock_config.secrets_patterns = []
+        mock_config.injection_rate_limit.threshold = 5
+        mock_config.injection_rate_limit.window_seconds = 60
 
         mock_session = MagicMock()
-        mock_session.query.return_value.filter.return_value.count.return_value = 5
+        # New semantics: one payload retried exactly at threshold (5x).
+        mock_session.query.return_value.filter.return_value.group_by.return_value.all.return_value = [
+            ("samehash", 5),
+        ]
 
         mock_logger = MagicMock()
         mock_logger._get_session.return_value = mock_session
@@ -808,9 +818,14 @@ class TestCheckInjectionRate:
 
         mock_config = MagicMock()
         mock_config.secrets_patterns = []
+        mock_config.injection_rate_limit.threshold = 5
+        mock_config.injection_rate_limit.window_seconds = 60
 
         mock_session = MagicMock()
-        mock_session.query.return_value.filter.return_value.count.return_value = 3
+        # One payload retried 3x — below threshold, no block.
+        mock_session.query.return_value.filter.return_value.group_by.return_value.all.return_value = [
+            ("samehash", 3),
+        ]
 
         mock_logger = MagicMock()
         mock_logger._get_session.return_value = mock_session
@@ -827,9 +842,12 @@ class TestCheckInjectionRate:
 
         mock_config = MagicMock()
         mock_config.secrets_patterns = []
+        mock_config.injection_rate_limit.threshold = 5
+        mock_config.injection_rate_limit.window_seconds = 60
 
         mock_session = MagicMock()
-        mock_session.query.return_value.filter.return_value.count.return_value = 0
+        # No threat-flagged scans in window.
+        mock_session.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
 
         mock_logger = MagicMock()
         mock_logger._get_session.return_value = mock_session
