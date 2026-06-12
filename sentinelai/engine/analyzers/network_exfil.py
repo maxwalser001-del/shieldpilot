@@ -74,6 +74,20 @@ _PATTERNS: List[_Pattern] = [
         weight=1.0,
         description="Curl/wget uploading sensitive file (direct exfiltration)",
     ),
+    # curl/wget uploading ANY local file's contents (@ reads a file) to a URL.
+    # The sensitive-named variant above blocks; this generic file-upload shape
+    # warns on its own merits (textbook exfil: read a local file, POST it
+    # outward), so the signal no longer depends on an incidental high-entropy
+    # flag to be surfaced. Non-blocking (warn) — surfaces without constraining.
+    _Pattern(
+        regex=re.compile(
+            r"\b(?:curl|wget)\b[^|;&]*(?:-d\s*@|--data(?:-\w+)?\s*@|--upload-file\s+)",
+            re.IGNORECASE,
+        ),
+        score=65,
+        weight=0.85,
+        description="Curl/wget uploading a local file's contents (possible exfiltration)",
+    ),
     # /dev/tcp usage (bash built-in network redirection)
     _Pattern(
         regex=re.compile(r"/dev/tcp/", re.IGNORECASE),

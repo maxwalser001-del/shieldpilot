@@ -59,9 +59,13 @@ _PATTERNS: List[_Pattern] = [
         weight=1.0,
         description="Attempt to modify /etc/passwd",
     ),
-    # chmod u+s (setuid bit)
+    # chmod setuid/setgid bit. Special bits live in the FIRST digit of a
+    # FOUR-digit octal mode (4xxx=setuid, 2xxx=setgid, 6xxx=both). A 3-digit
+    # mode (e.g. 600, 755) has NO special bits — its first digit is the owner
+    # permission, so it must NOT match. First digit 2-7 = setuid and/or setgid
+    # present (0/1 = none/sticky-only, not privilege escalation).
     _Pattern(
-        regex=re.compile(r"\bchmod\s+[0-7]*[4-7][0-7]{2}\b|\bchmod\s+u\+s\b"),
+        regex=re.compile(r"\bchmod\s+[2-7][0-7]{3}\b|\bchmod\s+[ugoa]*\+s\b"),
         score=80,
         weight=0.9,
         description="Setting setuid bit on a file",

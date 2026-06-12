@@ -119,6 +119,22 @@ _PATTERNS: List[_Pattern] = [
 # Threshold for Shannon entropy flagging.
 _ENTROPY_THRESHOLD = 4.5
 
+# High entropy is only meaningful as *obfuscation* when the high-entropy content
+# is about to be executed or decoded. A high-entropy token sitting in an
+# argument (API tokens, hashes, UUIDs, base64 DATA in a URL, git SHAs) is
+# perfectly benign and must not be flagged on entropy alone. We therefore only
+# emit the entropy signal when an exec/decode context co-occurs (or another
+# obfuscation pattern already matched).
+_EXEC_DECODE_CONTEXT = re.compile(
+    r"\beval\b"
+    r"|\|\s*(?:ba)?sh\b"
+    r"|\|\s*python[23]?(?:\s|$)"
+    r"|\bbase64\s+(?:-d|--decode)\b"
+    r"|\bxxd\s+-r\b"
+    r"|\bopenssl\s+enc\b",
+    re.IGNORECASE,
+)
+
 
 def _shannon_entropy(text: str) -> float:
     """Calculate the Shannon entropy of *text*.
@@ -176,7 +192,9 @@ class ObfuscationAnalyzer(BaseAnalyzer):
         # obfuscated payloads embedded in the command.
         # ------------------------------------------------------------------
         entropy = _shannon_entropy(command)
-        if entropy > _ENTROPY_THRESHOLD:
+        if entropy > _ENTROPY_THRESHOLD and (
+            signals or _EXEC_DECODE_CONTEXT.search(command)
+        ):
             signals.append(
                 RiskSignal(
                     category=RiskCategory.OBFUSCATION,
